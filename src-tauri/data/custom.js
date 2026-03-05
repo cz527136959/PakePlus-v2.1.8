@@ -3,7 +3,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>可变格子 · 图片墙 (自由设置数量)</title>
+    <title>图片墙 · 编辑模式无高亮 + 固定初始图</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,6 +16,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             display: flex;
             justify-content: center;
             padding: 1.5rem;
+            position: relative;
         }
         .app-container {
             max-width: 1400px;
@@ -45,7 +46,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             border-radius: 0 1rem 1rem 0;
             line-height: 1.5;
         }
-        /* 控制面板 — 两行布局 */
+        /* 控制面板 */
         .control-panel {
             background: #ffffffdd;
             backdrop-filter: blur(4px);
@@ -193,14 +194,12 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         .file-input {
             display: none;
         }
-        /* 网格 — 自动适应 */
+        /* 网格 — 固定10列 */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            grid-template-columns: repeat(10, minmax(110px, 1fr));
             gap: 1rem;
             margin-top: 1rem;
-            max-height: 600px;
-            overflow-y: auto;
             padding: 0.5rem 0.2rem 0.5rem 0.2rem;
             background: #f9f9fc;
             border-radius: 1.5rem;
@@ -233,14 +232,9 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             pointer-events: none;
             border: 1px solid #e9eef2;
         }
+        /* 隐藏编号 */
         .card-index {
-            margin-top: 6px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #64748b;
-            background: #eef2f6;
-            padding: 0.2rem 0.8rem;
-            border-radius: 40px;
+            display: none;
         }
         .hint {
             font-size: 0.85rem;
@@ -254,22 +248,87 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             flex-wrap: wrap;
             border-top: 1px dashed #d1d9e6;
             padding-top: 1.5rem;
+            align-items: center;
+        }
+        /* 中央弹窗模态框 — 无序号 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 80%;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+            position: relative;
+            text-align: center;
+        }
+        .modal-content p {
+            font-size: 1.2rem;
+            color: #1e293b;
+            margin: 1rem 0;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            line-height: 1;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .modal-close:hover {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        /* 编辑模式开关样式 */
+        .edit-mode-btn {
+            background: #e0e7ff;
+            border-color: #818cf8;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+        .edit-mode-btn.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
         }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <h1>🖼️ 灵活格子 · 图片故事板 <span style="font-size:0.9rem; background:#e2e8f0; padding:0.2rem 1rem; border-radius:40px; color:#334155;">自由设定数量</span></h1>
-    <div class="subhead">每个格子独立图片+文字。点击格子选中，下方编辑。调整格子数量后，原有数据会保留(多退少补)。所有更改自动存入浏览器。</div>
+    <h1>🖼️ 图片墙 · 编辑模式无高亮 + 固定初始图</h1>
+    <div class="subhead">每个格子初始图片固定不动；文字和点击后图片绑定，可随机打乱；初始化顺序恢复原始配对。编辑模式下点击图片无高亮边框，仅编辑区更新。</div>
 
-    <!-- 控制区域 -->
+    <!-- 控制面板 -->
     <div class="control-panel">
         <!-- 第一行：数量控制 -->
         <div class="size-row">
             <label>🔢 格子数量</label>
             <input type="number" id="sizeInput" min="1" max="500" value="50" step="1">
             <button id="resizeBtn">调整数量</button>
-            <span style="color:#475569; font-size:0.9rem;">（1~500，调整后按“确认”生效）</span>
+            <span style="color:#475569; font-size:0.9rem;">（始终按10列排列）</span>
         </div>
 
         <!-- 第二行：编辑区 -->
@@ -284,10 +343,11 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
                 <textarea id="editTextInput" rows="2" placeholder="在这里修改当前选中项的文字..."></textarea>
                 <div class="row">
                     <button class="primary" id="updateTextBtn">💾 更新当前文字</button>
-                    <button id="changePicBtn">🖼️ 更换选中图片</button>
+                    <button id="changeInitialPicBtn">🖼️ 更换初始图片</button>
+                    <button id="setClickedPicBtn">🔁 设置点击后图片</button>
                     <input type="file" id="fileInput" class="file-input" accept="image/*">
                 </div>
-                <div class="hint">• 点击上方格子选中 • 更换图片立即生效 • 数量调整后多退少补</div>
+                <div class="hint">• 点击图片弹出文字 • 图片变点击后图 • 可分别上传两种图片</div>
             </div>
         </div>
     </div>
@@ -295,10 +355,21 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
     <!-- 网格容器 -->
     <div class="grid" id="gridContainer"></div>
 
-    <!-- 底部工具条 -->
+    <!-- 底部工具条 + 编辑模式开关 -->
     <div class="footer-actions">
-        <button id="resetBtn">🔄 重置当前数量为默认图片+文字</button>
+        <button id="toggleEditModeBtn" class="edit-mode-btn">📝 编辑模式: 关</button>
+        <button id="shuffleBtn">🎲 随机打乱文字+点击图</button>
+        <button id="initOrderBtn">🔄 初始化顺序</button>
+        <button id="resetBtn">🔁 重置内容为默认</button>
         <span style="flex:1; text-align:right; font-size:0.85rem; color:#94a3b8;" id="storageStatus">📦 本地自动保存 ✓</span>
+    </div>
+</div>
+
+<!-- 中央弹窗（无序号） -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal-content">
+        <button class="modal-close" id="modalClose">&times;</button>
+        <p id="modalText">这是文字内容</p>
     </div>
 </div>
 
@@ -306,7 +377,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
     (function() {
         // ---------- 配置 ----------
         const STORAGE_KEY = 'flexibleGridData';
-        const MAX_ITEMS = 500;          // 防止浏览器卡顿
+        const MAX_ITEMS = 500;
         const DEFAULT_SIZE = 50;
 
         // DOM 元素
@@ -315,19 +386,33 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         const currentTextDisplay = document.getElementById('currentTextDisplay');
         const editTextInput = document.getElementById('editTextInput');
         const updateTextBtn = document.getElementById('updateTextBtn');
-        const changePicBtn = document.getElementById('changePicBtn');
+        const changeInitialPicBtn = document.getElementById('changeInitialPicBtn');
+        const setClickedPicBtn = document.getElementById('setClickedPicBtn');
         const fileInput = document.getElementById('fileInput');
         const resetBtn = document.getElementById('resetBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const initOrderBtn = document.getElementById('initOrderBtn');
+        const toggleEditModeBtn = document.getElementById('toggleEditModeBtn');
         const storageStatus = document.getElementById('storageStatus');
         const sizeInput = document.getElementById('sizeInput');
         const resizeBtn = document.getElementById('resizeBtn');
 
-        // 核心数据
-        let items = [];                 // 存储 { imageUrl, text }
-        let selectedIndex = 0;           // 0-based
+        // 模态框元素
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalClose = document.getElementById('modalClose');
+        const modalText = document.getElementById('modalText');
 
-        // ---------- 工具函数：默认SVG图片 (带数字) ----------
-        function createDefaultImageDataURL(index) {
+        // ---------- 核心数据结构 ----------
+        // grids: 每个格子固定属性 { initialImageUrl, clicked }
+        // stickers: 每个贴纸 { text, clickedImageUrl, originalIndex }，originalIndex 记录该贴纸原本所属的格子索引
+        let grids = [];
+        let stickers = [];
+        let selectedIndex = 0;          // 当前选中的格子索引
+        let uploadMode = 'initial';      // 'initial' 或 'clicked'
+        let editMode = false;            // 编辑模式：true=编辑模式（点击不触发效果，无高亮），false=正常模式
+
+        // ---------- 工具函数：默认图片 ----------
+        function createDefaultInitialImageURL(index) {
             const hue = (index * 31) % 360;
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
                 <rect width="100" height="100" fill="hsl(${hue}, 70%, 60%)" />
@@ -336,18 +421,45 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             return 'data:image/svg+xml,' + encodeURIComponent(svg);
         }
 
-        // 生成默认 items (指定数量)
-        function generateDefaultItems(count) {
-            return Array.from({ length: count }, (_, i) => ({
-                imageUrl: createDefaultImageDataURL(i),
-                text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`
-            }));
+        function createDefaultClickedImageURL(index) {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+                <rect width="100" height="100" fill="#9ca3af" rx="12" ry="12" />
+                <circle cx="50" cy="50" r="25" fill="white" />
+                <path d="M38 50 L48 60 L62 40" stroke="#4f46e5" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>`;
+            return 'data:image/svg+xml,' + encodeURIComponent(svg);
+        }
+
+        // 生成默认数据
+        function generateDefaultData(count) {
+            const newGrids = [];
+            const newStickers = [];
+            for (let i = 0; i < count; i++) {
+                newGrids.push({
+                    initialImageUrl: createDefaultInitialImageURL(i),
+                    clicked: false
+                });
+                newStickers.push({
+                    text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`,
+                    clickedImageUrl: createDefaultClickedImageURL(i),
+                    originalIndex: i
+                });
+            }
+            return { grids: newGrids, stickers: newStickers };
+        }
+
+        // 深拷贝
+        function deepCopyData() {
+            return {
+                grids: JSON.parse(JSON.stringify(grids)),
+                stickers: JSON.parse(JSON.stringify(stickers))
+            };
         }
 
         // ---------- 本地存储 ----------
         function saveToLocalStorage() {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ grids, stickers }));
                 storageStatus.innerText = '📦 已自动保存到本地 ✓';
                 storageStatus.style.color = '#4f46e5';
             } catch (e) {
@@ -361,245 +473,384 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             }
         }
 
-        // 从本地加载，若无效则返回 null
         function loadFromLocalStorage() {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) return null;
             try {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    // 验证每一项至少有 imageUrl 和 text 字符串
-                    const valid = parsed.every(item => 
-                        item && typeof item.imageUrl === 'string' && typeof item.text === 'string'
-                    );
-                    if (valid) return parsed;
+                if (parsed && Array.isArray(parsed.grids) && Array.isArray(parsed.stickers) &&
+                    parsed.grids.length === parsed.stickers.length) {
+                    // 简单验证
+                    const valid = parsed.grids.every(g => g && typeof g.initialImageUrl === 'string') &&
+                                 parsed.stickers.every(s => s && typeof s.text === 'string' && typeof s.clickedImageUrl === 'string' && typeof s.originalIndex === 'number');
+                    if (valid) {
+                        // 确保 clicked 字段存在
+                        parsed.grids.forEach(g => g.clicked = g.clicked || false);
+                        return parsed;
+                    }
                 }
             } catch (e) {}
-            return null; // 无效数据
+            return null;
         }
 
-        // 初始化数据：优先加载本地，否则生成默认 (默认数量 = DEFAULT_SIZE)
+        // 初始化数据
         function initData() {
             const stored = loadFromLocalStorage();
             if (stored) {
-                items = stored;
-                // 输入框显示当前长度
-                sizeInput.value = items.length;
+                grids = stored.grids;
+                stickers = stored.stickers;
+                sizeInput.value = grids.length;
             } else {
-                items = generateDefaultItems(DEFAULT_SIZE);
+                const defaultData = generateDefaultData(DEFAULT_SIZE);
+                grids = defaultData.grids;
+                stickers = defaultData.stickers;
                 sizeInput.value = DEFAULT_SIZE;
             }
-            // 确保选中索引有效
-            if (selectedIndex >= items.length) selectedIndex = items.length - 1;
-            if (selectedIndex < 0 && items.length > 0) selectedIndex = 0;
+            if (selectedIndex >= grids.length) selectedIndex = grids.length - 1;
+            if (selectedIndex < 0 && grids.length > 0) selectedIndex = 0;
         }
 
-        // ---------- 渲染网格 (全量重绘) ----------
+        // ---------- 高亮刷新函数（根据 editMode 和 selectedIndex 更新卡片 selected 类）----------
+        function refreshHighlight() {
+            const cards = gridEl.querySelectorAll('.card');
+            if (editMode) {
+                // 编辑模式下，移除所有高亮
+                cards.forEach(card => card.classList.remove('selected'));
+            } else {
+                // 正常模式下，给当前选中的卡片添加高亮，其余移除
+                cards.forEach((card, idx) => {
+                    if (idx === selectedIndex) {
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                });
+            }
+        }
+
+        // ---------- 渲染网格 ----------
         function renderGrid() {
             gridEl.innerHTML = '';
-            items.forEach((item, idx) => {
+            for (let i = 0; i < grids.length; i++) {
+                const grid = grids[i];
+                const sticker = stickers[i]; // 当前格子显示的贴纸
                 const card = document.createElement('div');
                 card.className = 'card';
-                if (idx === selectedIndex) card.classList.add('selected');
-                card.dataset.index = idx;
+                card.dataset.index = i;
 
                 const img = document.createElement('img');
-                img.src = item.imageUrl;
-                img.alt = `选项${idx+1}`;
+                // 显示逻辑：如果格子已点击，则显示当前贴纸的点击后图片，否则显示格子的初始图片
+                img.src = grid.clicked ? sticker.clickedImageUrl : grid.initialImageUrl;
+                img.alt = `选项${i+1}`;
                 img.loading = 'lazy';
 
-                const indexSpan = document.createElement('span');
-                indexSpan.className = 'card-index';
-                indexSpan.innerText = `#${idx+1}`;
-
                 card.appendChild(img);
-                card.appendChild(indexSpan);
                 gridEl.appendChild(card);
-            });
-
-            // 更新下面板
+            }
+            // 根据当前模式刷新高亮
+            refreshHighlight();
             updateInfoPanelForIndex(selectedIndex);
         }
 
-        // 更新单个卡片图片 (避免重绘全部)
-        function updateCardImage(index, newSrc) {
+        // 更新单个卡片图片（根据当前状态）
+        function updateCardImage(index) {
             const cards = gridEl.querySelectorAll('.card');
             if (index >= 0 && index < cards.length) {
                 const img = cards[index].querySelector('img');
-                if (img) img.src = newSrc;
+                const grid = grids[index];
+                const sticker = stickers[index];
+                if (img && grid && sticker) {
+                    img.src = grid.clicked ? sticker.clickedImageUrl : grid.initialImageUrl;
+                }
             }
         }
 
-        // 更新信息面板 (预览、编辑框、徽章)
+        // 更新信息面板
         function updateInfoPanelForIndex(index) {
-            if (!items.length) {
-                // 无格子时特殊处理
+            if (!grids.length) {
                 selectedBadge.innerText = '⚡ 没有格子';
                 currentTextDisplay.innerText = '—';
                 editTextInput.value = '';
                 return;
             }
-            if (index < 0 || index >= items.length) index = 0; // 容错
-            const item = items[index];
-            currentTextDisplay.innerText = item.text;
-            editTextInput.value = item.text;
-            selectedBadge.innerText = `⚡ 当前选中: 第${index+1}项 / 共${items.length}项`;
+            if (index < 0 || index >= grids.length) index = 0;
+            const sticker = stickers[index];
+            currentTextDisplay.innerText = sticker.text;
+            editTextInput.value = sticker.text;
+            selectedBadge.innerText = `⚡ 当前选中: 第${index+1}项 / 共${grids.length}项`;
         }
 
-        // 高亮管理
         function setSelectedIndex(index) {
-            if (!items.length) {
+            if (!grids.length) {
                 selectedIndex = -1;
                 updateInfoPanelForIndex(-1);
                 return;
             }
             if (index < 0) index = 0;
-            if (index >= items.length) index = items.length - 1;
+            if (index >= grids.length) index = grids.length - 1;
             if (index === selectedIndex && index >= 0) {
-                // 相同索引也要刷新面板（防止外部更新）
+                // 相同索引也要刷新面板，但不需要刷新高亮（因为高亮可能因模式变化已正确）
                 updateInfoPanelForIndex(index);
                 return;
             }
 
-            // 移除所有高亮
-            const cards = gridEl.querySelectorAll('.card');
-            cards.forEach(card => card.classList.remove('selected'));
-
-            // 设置新高亮
-            if (index >= 0 && index < cards.length) {
-                cards[index].classList.add('selected');
-            }
             selectedIndex = index;
+            // 根据当前模式更新高亮
+            refreshHighlight();
             updateInfoPanelForIndex(index);
         }
 
-        // 更新当前选中项的文字 (从输入框)
         function updateCurrentText() {
-            if (selectedIndex < 0 || !items.length) {
+            if (selectedIndex < 0 || !grids.length) {
                 alert('没有可编辑的格子');
                 return;
             }
             const newText = editTextInput.value.trim() || '(空描述)';
-            items[selectedIndex].text = newText;
+            stickers[selectedIndex].text = newText;
             currentTextDisplay.innerText = newText;
             saveToLocalStorage();
         }
 
-        // ---------- 调整格子数量 (核心新功能) ----------
+        // 调整格子数量
         function resizeItems(newSize) {
             newSize = Math.min(MAX_ITEMS, Math.max(1, parseInt(newSize, 10) || 1));
-            const oldLength = items.length;
-            if (newSize === oldLength) {
-                // 数量没变，无需操作
-                return;
-            }
+            const oldLength = grids.length;
+            if (newSize === oldLength) return;
 
-            let newItems;
+            let newGrids, newStickers;
             if (newSize > oldLength) {
-                // 复制现有，补充默认
-                newItems = items.slice();
+                newGrids = grids.slice();
+                newStickers = stickers.slice();
                 for (let i = oldLength; i < newSize; i++) {
-                    newItems.push({
-                        imageUrl: createDefaultImageDataURL(i),
-                        text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`
+                    newGrids.push({
+                        initialImageUrl: createDefaultInitialImageURL(i),
+                        clicked: false
+                    });
+                    newStickers.push({
+                        text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`,
+                        clickedImageUrl: createDefaultClickedImageURL(i),
+                        originalIndex: i
                     });
                 }
             } else {
-                // 截断
-                newItems = items.slice(0, newSize);
+                newGrids = grids.slice(0, newSize);
+                newStickers = stickers.slice(0, newSize);
+                // 注意：截断后，超出部分的贴纸被丢弃，但它们的 originalIndex 可能大于新长度，这没关系，因为不再使用。
             }
 
-            items = newItems;
-            // 修正选中索引
+            grids = newGrids;
+            stickers = newStickers;
             if (selectedIndex >= newSize) selectedIndex = newSize - 1;
             if (selectedIndex < 0 && newSize > 0) selectedIndex = 0;
 
-            // 重新绘制网格
             renderGrid();
-            // 更新输入框显示
             sizeInput.value = newSize;
-            // 保存到本地
             saveToLocalStorage();
+        }
+
+        // ---------- 随机打乱文字+点击后图片（仅打乱 stickers 数组，保持 originalIndex 不变）----------
+        function shuffleStickers() {
+            if (stickers.length === 0) return;
+            // Fisher-Yates 打乱 stickers 数组
+            for (let i = stickers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [stickers[i], stickers[j]] = [stickers[j], stickers[i]];
+            }
+            // 打乱后，所有格子的 clicked 状态应重置为 false，因为贴纸变了
+            grids.forEach(g => g.clicked = false);
+            // 重新渲染网格
+            renderGrid();
+            saveToLocalStorage();
+        }
+
+        // ---------- 初始化顺序：按 originalIndex 排序 stickers，恢复原始配对，并重置点击状态 ----------
+        function restoreOriginalOrder() {
+            if (stickers.length === 0) return;
+            // 按 originalIndex 升序排序 stickers
+            stickers.sort((a, b) => a.originalIndex - b.originalIndex);
+            // 重置所有格子点击状态
+            grids.forEach(g => g.clicked = false);
+            renderGrid();
+            saveToLocalStorage();
+        }
+
+        // ---------- 重置内容为默认（图片和文字都变为默认）----------
+        function resetToDefault() {
+            const count = grids.length;
+            const defaultData = generateDefaultData(count);
+            grids = defaultData.grids;
+            stickers = defaultData.stickers;
+            renderGrid();
+            setSelectedIndex(0);
+            saveToLocalStorage();
+        }
+
+        // ---------- 中央弹窗 ----------
+        function showModal(text) {
+            modalText.innerText = text;
+            modalOverlay.style.display = 'flex';
+        }
+
+        function hideModal() {
+            modalOverlay.style.display = 'none';
+        }
+
+        // ---------- 图片点击处理（正常模式下触发） ----------
+        function handleCardClick(index) {
+            if (index < 0 || index >= grids.length) return;
+            const grid = grids[index];
+            const sticker = stickers[index];
+            if (grid.clicked) return; // 已点击过，无法再次点击
+
+            // 弹出文字
+            showModal(sticker.text);
+
+            // 标记格子为已点击，并更新图片
+            grid.clicked = true;
+            updateCardImage(index);
+            saveToLocalStorage();
+        }
+
+        // ---------- 文件上传处理 ----------
+        function handleFileUpload(mode, targetIndex) {
+            const file = fileInput.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                alert('请选择一个图片文件');
+                fileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                const dataUrl = loadEvent.target.result;
+                if (targetIndex < 0 || targetIndex >= grids.length) return;
+
+                if (mode === 'initial') {
+                    // 更换格子的初始图片
+                    grids[targetIndex].initialImageUrl = dataUrl;
+                    // 如果该格子尚未点击，则立即更新显示
+                    if (!grids[targetIndex].clicked) {
+                        updateCardImage(targetIndex);
+                    }
+                } else {
+                    // 更换当前格子贴纸的点击后图片
+                    stickers[targetIndex].clickedImageUrl = dataUrl;
+                    // 如果该格子已经点击，则立即更新显示
+                    if (grids[targetIndex].clicked) {
+                        updateCardImage(targetIndex);
+                    }
+                }
+                saveToLocalStorage();
+                fileInput.value = '';
+            };
+            reader.onerror = () => {
+                alert('读取文件失败');
+                fileInput.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ---------- 切换编辑模式 ----------
+        function toggleEditMode() {
+            editMode = !editMode;
+            if (editMode) {
+                toggleEditModeBtn.textContent = '📝 编辑模式: 开';
+                toggleEditModeBtn.classList.add('active');
+            } else {
+                toggleEditModeBtn.textContent = '📝 编辑模式: 关';
+                toggleEditModeBtn.classList.remove('active');
+            }
+            // 刷新高亮显示
+            refreshHighlight();
         }
 
         // ---------- 事件绑定 ----------
         function bindEvents() {
-            // 1. 网格点击委托
+            // 网格点击：先选中，然后根据编辑模式决定是否触发点击效果
             gridEl.addEventListener('click', (e) => {
                 const card = e.target.closest('.card');
                 if (!card) return;
                 const idx = card.dataset.index;
                 if (idx !== undefined) {
-                    setSelectedIndex(parseInt(idx, 10));
+                    const index = parseInt(idx, 10);
+                    setSelectedIndex(index);
+                    // 只有非编辑模式下才执行真正的点击操作
+                    if (!editMode) {
+                        handleCardClick(index);
+                    }
                 }
             });
 
-            // 2. 更新文字按钮
+            // 模态框关闭
+            modalClose.addEventListener('click', hideModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) hideModal();
+            });
+
+            // 更新文字
             updateTextBtn.addEventListener('click', updateCurrentText);
 
-            // 3. 更换图片按钮
-            changePicBtn.addEventListener('click', () => {
-                if (selectedIndex < 0 || !items.length) {
+            // 更换初始图片
+            changeInitialPicBtn.addEventListener('click', () => {
+                if (selectedIndex < 0 || !grids.length) {
                     alert('请先点击选中一个格子');
                     return;
                 }
+                uploadMode = 'initial';
                 fileInput.click();
             });
 
-            // 4. 文件选择处理
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (!file.type.startsWith('image/')) {
-                    alert('请选择一个图片文件');
-                    fileInput.value = '';
+            // 设置点击后图片
+            setClickedPicBtn.addEventListener('click', () => {
+                if (selectedIndex < 0 || !grids.length) {
+                    alert('请先点击选中一个格子');
                     return;
                 }
-
-                const targetIndex = selectedIndex; // 锁定选中
-                const reader = new FileReader();
-                reader.onload = (loadEvent) => {
-                    const dataUrl = loadEvent.target.result;
-                    if (items[targetIndex]) {
-                        items[targetIndex].imageUrl = dataUrl;
-                        updateCardImage(targetIndex, dataUrl);
-                        saveToLocalStorage();
-                    }
-                    fileInput.value = '';
-                };
-                reader.onerror = () => {
-                    alert('读取文件失败');
-                    fileInput.value = '';
-                };
-                reader.readAsDataURL(file);
+                uploadMode = 'clicked';
+                fileInput.click();
             });
 
-            // 5. 重置按钮 (恢复当前数量的默认)
+            // 文件选择处理
+            fileInput.addEventListener('change', (e) => {
+                const targetIndex = selectedIndex;
+                handleFileUpload(uploadMode, targetIndex);
+            });
+
+            // 重置内容为默认（增加确认弹窗）
             resetBtn.addEventListener('click', () => {
-                if (!items.length) {
-                    // 如果没有格子，重置为默认数量 (比如50)
-                    items = generateDefaultItems(DEFAULT_SIZE);
-                } else {
-                    // 保留当前数量，但重置所有项为默认
-                    const count = items.length;
-                    items = generateDefaultItems(count);
+                if (confirm('确定要重置所有内容为默认吗？此操作将丢弃您所有自定义的图片和文字。')) {
+                    resetToDefault();
+                    hideModal();
+                    storageStatus.innerText = '📦 已重置并保存';
                 }
-                renderGrid();
-                setSelectedIndex(0);
-                saveToLocalStorage();
-                storageStatus.innerText = '📦 已重置并保存';
             });
 
-            // 6. 调整数量按钮
+            // 随机打乱文字+点击后图片
+            shuffleBtn.addEventListener('click', () => {
+                shuffleStickers();
+                hideModal();
+            });
+
+            // 初始化顺序
+            initOrderBtn.addEventListener('click', () => {
+                restoreOriginalOrder();
+                hideModal();
+            });
+
+            // 切换编辑模式
+            toggleEditModeBtn.addEventListener('click', toggleEditMode);
+
+            // 调整数量
             resizeBtn.addEventListener('click', () => {
                 let newSize = parseInt(sizeInput.value, 10);
                 if (isNaN(newSize) || newSize < 1) newSize = 1;
                 if (newSize > MAX_ITEMS) newSize = MAX_ITEMS;
-                sizeInput.value = newSize;   // 回显修正后的值
+                sizeInput.value = newSize;
                 resizeItems(newSize);
+                hideModal();
             });
 
-            // 7. 数量输入框允许回车触发调整 (可选)
             sizeInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
