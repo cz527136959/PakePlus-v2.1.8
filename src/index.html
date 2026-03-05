@@ -1,11 +1,623 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        Hello World
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可变格子 · 图片墙 (自由设置数量)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #f4f7fb;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .app-container {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            padding: 2rem;
+        }
+        h1 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin: 0 0 0.25rem 0;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .subhead {
+            color: #475569;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            border-left: 4px solid #a5b4fc;
+            padding-left: 1rem;
+            background: #f8fafc;
+            border-radius: 0 1rem 1rem 0;
+            line-height: 1.5;
+        }
+        /* 控制面板 — 两行布局 */
+        .control-panel {
+            background: #ffffffdd;
+            backdrop-filter: blur(4px);
+            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .size-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            background: #f1f4f9;
+            padding: 1rem 1.5rem;
+            border-radius: 3rem;
+        }
+        .size-row label {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .size-row input {
+            width: 100px;
+            padding: 0.6rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            font-size: 1rem;
+            text-align: center;
+            background: white;
+        }
+        .size-row input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        .size-row button {
+            background: #4f46e5;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.8rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+        }
+        .size-row button:hover {
+            background: #4338ca;
+        }
+        .info-edit-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+        .info-area {
+            flex: 2;
+            min-width: 280px;
+        }
+        .edit-area {
+            flex: 3;
+            min-width: 300px;
+        }
+        .selected-badge {
+            background: #e0e7ff;
+            color: #1e3a8a;
+            font-weight: 600;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+        }
+        .current-text-display {
+            background: #f1f5f9;
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            font-size: 1rem;
+            margin: 0.5rem 0 1rem 0;
+            border: 1px solid #cbd5e1;
+            word-break: break-word;
+            min-height: 4rem;
+            max-height: 6rem;
+            overflow-y: auto;
+        }
+        .label {
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+            margin-top: 0.8rem;
+        }
+        textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            resize: vertical;
+            background: white;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        }
+        button {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 0.6rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 500;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        button:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        button.primary {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
+        }
+        button.primary:hover {
+            background: #4338ca;
+        }
+        .file-input {
+            display: none;
+        }
+        /* 网格 — 自动适应 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 0.5rem 0.2rem 0.5rem 0.2rem;
+            background: #f9f9fc;
+            border-radius: 1.5rem;
+        }
+        .card {
+            background: white;
+            border-radius: 1.2rem;
+            padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.02);
+            transition: all 0.15s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .card.selected {
+            border-color: #4f46e5;
+            background: #f5f3ff;
+            transform: scale(1.01);
+            box-shadow: 0 12px 24px -8px rgba(79, 70, 229, 0.3);
+        }
+        .card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 14px;
+            background: #eef2f6;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            pointer-events: none;
+            border: 1px solid #e9eef2;
+        }
+        .card-index {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #64748b;
+            background: #eef2f6;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+        }
+        .hint {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+        .footer-actions {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            border-top: 1px dashed #d1d9e6;
+            padding-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>🖼️ 灵活格子 · 图片故事板 <span style="font-size:0.9rem; background:#e2e8f0; padding:0.2rem 1rem; border-radius:40px; color:#334155;">自由设定数量</span></h1>
+    <div class="subhead">每个格子独立图片+文字。点击格子选中，下方编辑。调整格子数量后，原有数据会保留(多退少补)。所有更改自动存入浏览器。</div>
+
+    <!-- 控制区域 -->
+    <div class="control-panel">
+        <!-- 第一行：数量控制 -->
+        <div class="size-row">
+            <label>🔢 格子数量</label>
+            <input type="number" id="sizeInput" min="1" max="500" value="50" step="1">
+            <button id="resizeBtn">调整数量</button>
+            <span style="color:#475569; font-size:0.9rem;">（1~500，调整后按“确认”生效）</span>
+        </div>
+
+        <!-- 第二行：编辑区 -->
+        <div class="info-edit-wrapper">
+            <div class="info-area">
+                <div class="selected-badge" id="selectedBadge">⚡ 当前选中: 第1项</div>
+                <div class="label">📄 当前文字 (只读预览)</div>
+                <div class="current-text-display" id="currentTextDisplay">这是第1个选项的描述。</div>
+            </div>
+            <div class="edit-area">
+                <div class="label">✏️ 编辑文字 (修改后点“更新”)</div>
+                <textarea id="editTextInput" rows="2" placeholder="在这里修改当前选中项的文字..."></textarea>
+                <div class="row">
+                    <button class="primary" id="updateTextBtn">💾 更新当前文字</button>
+                    <button id="changePicBtn">🖼️ 更换选中图片</button>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                </div>
+                <div class="hint">• 点击上方格子选中 • 更换图片立即生效 • 数量调整后多退少补</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 网格容器 -->
+    <div class="grid" id="gridContainer"></div>
+
+    <!-- 底部工具条 -->
+    <div class="footer-actions">
+        <button id="resetBtn">🔄 重置当前数量为默认图片+文字</button>
+        <span style="flex:1; text-align:right; font-size:0.85rem; color:#94a3b8;" id="storageStatus">📦 本地自动保存 ✓</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 配置 ----------
+        const STORAGE_KEY = 'flexibleGridData';
+        const MAX_ITEMS = 500;          // 防止浏览器卡顿
+        const DEFAULT_SIZE = 50;
+
+        // DOM 元素
+        const gridEl = document.getElementById('gridContainer');
+        const selectedBadge = document.getElementById('selectedBadge');
+        const currentTextDisplay = document.getElementById('currentTextDisplay');
+        const editTextInput = document.getElementById('editTextInput');
+        const updateTextBtn = document.getElementById('updateTextBtn');
+        const changePicBtn = document.getElementById('changePicBtn');
+        const fileInput = document.getElementById('fileInput');
+        const resetBtn = document.getElementById('resetBtn');
+        const storageStatus = document.getElementById('storageStatus');
+        const sizeInput = document.getElementById('sizeInput');
+        const resizeBtn = document.getElementById('resizeBtn');
+
+        // 核心数据
+        let items = [];                 // 存储 { imageUrl, text }
+        let selectedIndex = 0;           // 0-based
+
+        // ---------- 工具函数：默认SVG图片 (带数字) ----------
+        function createDefaultImageDataURL(index) {
+            const hue = (index * 31) % 360;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+                <rect width="100" height="100" fill="hsl(${hue}, 70%, 60%)" />
+                <text x="50" y="50" font-size="36" text-anchor="middle" dy="0.35em" fill="white" font-family="Arial, sans-serif" font-weight="bold">${index+1}</text>
+            </svg>`;
+            return 'data:image/svg+xml,' + encodeURIComponent(svg);
+        }
+
+        // 生成默认 items (指定数量)
+        function generateDefaultItems(count) {
+            return Array.from({ length: count }, (_, i) => ({
+                imageUrl: createDefaultImageDataURL(i),
+                text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`
+            }));
+        }
+
+        // ---------- 本地存储 ----------
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+                storageStatus.innerText = '📦 已自动保存到本地 ✓';
+                storageStatus.style.color = '#4f46e5';
+            } catch (e) {
+                console.warn('存储失败', e);
+                let msg = '⚠️ 保存失败';
+                if (e.name === 'QuotaExceededError') {
+                    msg = '⚠️ 本地存储空间不足，图片可能过大';
+                }
+                storageStatus.innerText = msg;
+                storageStatus.style.color = '#b91c1c';
+            }
+        }
+
+        // 从本地加载，若无效则返回 null
+        function loadFromLocalStorage() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return null;
+            try {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    // 验证每一项至少有 imageUrl 和 text 字符串
+                    const valid = parsed.every(item => 
+                        item && typeof item.imageUrl === 'string' && typeof item.text === 'string'
+                    );
+                    if (valid) return parsed;
+                }
+            } catch (e) {}
+            return null; // 无效数据
+        }
+
+        // 初始化数据：优先加载本地，否则生成默认 (默认数量 = DEFAULT_SIZE)
+        function initData() {
+            const stored = loadFromLocalStorage();
+            if (stored) {
+                items = stored;
+                // 输入框显示当前长度
+                sizeInput.value = items.length;
+            } else {
+                items = generateDefaultItems(DEFAULT_SIZE);
+                sizeInput.value = DEFAULT_SIZE;
+            }
+            // 确保选中索引有效
+            if (selectedIndex >= items.length) selectedIndex = items.length - 1;
+            if (selectedIndex < 0 && items.length > 0) selectedIndex = 0;
+        }
+
+        // ---------- 渲染网格 (全量重绘) ----------
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            items.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                if (idx === selectedIndex) card.classList.add('selected');
+                card.dataset.index = idx;
+
+                const img = document.createElement('img');
+                img.src = item.imageUrl;
+                img.alt = `选项${idx+1}`;
+                img.loading = 'lazy';
+
+                const indexSpan = document.createElement('span');
+                indexSpan.className = 'card-index';
+                indexSpan.innerText = `#${idx+1}`;
+
+                card.appendChild(img);
+                card.appendChild(indexSpan);
+                gridEl.appendChild(card);
+            });
+
+            // 更新下面板
+            updateInfoPanelForIndex(selectedIndex);
+        }
+
+        // 更新单个卡片图片 (避免重绘全部)
+        function updateCardImage(index, newSrc) {
+            const cards = gridEl.querySelectorAll('.card');
+            if (index >= 0 && index < cards.length) {
+                const img = cards[index].querySelector('img');
+                if (img) img.src = newSrc;
+            }
+        }
+
+        // 更新信息面板 (预览、编辑框、徽章)
+        function updateInfoPanelForIndex(index) {
+            if (!items.length) {
+                // 无格子时特殊处理
+                selectedBadge.innerText = '⚡ 没有格子';
+                currentTextDisplay.innerText = '—';
+                editTextInput.value = '';
+                return;
+            }
+            if (index < 0 || index >= items.length) index = 0; // 容错
+            const item = items[index];
+            currentTextDisplay.innerText = item.text;
+            editTextInput.value = item.text;
+            selectedBadge.innerText = `⚡ 当前选中: 第${index+1}项 / 共${items.length}项`;
+        }
+
+        // 高亮管理
+        function setSelectedIndex(index) {
+            if (!items.length) {
+                selectedIndex = -1;
+                updateInfoPanelForIndex(-1);
+                return;
+            }
+            if (index < 0) index = 0;
+            if (index >= items.length) index = items.length - 1;
+            if (index === selectedIndex && index >= 0) {
+                // 相同索引也要刷新面板（防止外部更新）
+                updateInfoPanelForIndex(index);
+                return;
+            }
+
+            // 移除所有高亮
+            const cards = gridEl.querySelectorAll('.card');
+            cards.forEach(card => card.classList.remove('selected'));
+
+            // 设置新高亮
+            if (index >= 0 && index < cards.length) {
+                cards[index].classList.add('selected');
+            }
+            selectedIndex = index;
+            updateInfoPanelForIndex(index);
+        }
+
+        // 更新当前选中项的文字 (从输入框)
+        function updateCurrentText() {
+            if (selectedIndex < 0 || !items.length) {
+                alert('没有可编辑的格子');
+                return;
+            }
+            const newText = editTextInput.value.trim() || '(空描述)';
+            items[selectedIndex].text = newText;
+            currentTextDisplay.innerText = newText;
+            saveToLocalStorage();
+        }
+
+        // ---------- 调整格子数量 (核心新功能) ----------
+        function resizeItems(newSize) {
+            newSize = Math.min(MAX_ITEMS, Math.max(1, parseInt(newSize, 10) || 1));
+            const oldLength = items.length;
+            if (newSize === oldLength) {
+                // 数量没变，无需操作
+                return;
+            }
+
+            let newItems;
+            if (newSize > oldLength) {
+                // 复制现有，补充默认
+                newItems = items.slice();
+                for (let i = oldLength; i < newSize; i++) {
+                    newItems.push({
+                        imageUrl: createDefaultImageDataURL(i),
+                        text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`
+                    });
+                }
+            } else {
+                // 截断
+                newItems = items.slice(0, newSize);
+            }
+
+            items = newItems;
+            // 修正选中索引
+            if (selectedIndex >= newSize) selectedIndex = newSize - 1;
+            if (selectedIndex < 0 && newSize > 0) selectedIndex = 0;
+
+            // 重新绘制网格
+            renderGrid();
+            // 更新输入框显示
+            sizeInput.value = newSize;
+            // 保存到本地
+            saveToLocalStorage();
+        }
+
+        // ---------- 事件绑定 ----------
+        function bindEvents() {
+            // 1. 网格点击委托
+            gridEl.addEventListener('click', (e) => {
+                const card = e.target.closest('.card');
+                if (!card) return;
+                const idx = card.dataset.index;
+                if (idx !== undefined) {
+                    setSelectedIndex(parseInt(idx, 10));
+                }
+            });
+
+            // 2. 更新文字按钮
+            updateTextBtn.addEventListener('click', updateCurrentText);
+
+            // 3. 更换图片按钮
+            changePicBtn.addEventListener('click', () => {
+                if (selectedIndex < 0 || !items.length) {
+                    alert('请先点击选中一个格子');
+                    return;
+                }
+                fileInput.click();
+            });
+
+            // 4. 文件选择处理
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) {
+                    alert('请选择一个图片文件');
+                    fileInput.value = '';
+                    return;
+                }
+
+                const targetIndex = selectedIndex; // 锁定选中
+                const reader = new FileReader();
+                reader.onload = (loadEvent) => {
+                    const dataUrl = loadEvent.target.result;
+                    if (items[targetIndex]) {
+                        items[targetIndex].imageUrl = dataUrl;
+                        updateCardImage(targetIndex, dataUrl);
+                        saveToLocalStorage();
+                    }
+                    fileInput.value = '';
+                };
+                reader.onerror = () => {
+                    alert('读取文件失败');
+                    fileInput.value = '';
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // 5. 重置按钮 (恢复当前数量的默认)
+            resetBtn.addEventListener('click', () => {
+                if (!items.length) {
+                    // 如果没有格子，重置为默认数量 (比如50)
+                    items = generateDefaultItems(DEFAULT_SIZE);
+                } else {
+                    // 保留当前数量，但重置所有项为默认
+                    const count = items.length;
+                    items = generateDefaultItems(count);
+                }
+                renderGrid();
+                setSelectedIndex(0);
+                saveToLocalStorage();
+                storageStatus.innerText = '📦 已重置并保存';
+            });
+
+            // 6. 调整数量按钮
+            resizeBtn.addEventListener('click', () => {
+                let newSize = parseInt(sizeInput.value, 10);
+                if (isNaN(newSize) || newSize < 1) newSize = 1;
+                if (newSize > MAX_ITEMS) newSize = MAX_ITEMS;
+                sizeInput.value = newSize;   // 回显修正后的值
+                resizeItems(newSize);
+            });
+
+            // 7. 数量输入框允许回车触发调整 (可选)
+            sizeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    resizeBtn.click();
+                }
+            });
+        }
+
+        // ---------- 启动 ----------
+        function init() {
+            initData();
+            renderGrid();
+            setSelectedIndex(selectedIndex >= 0 ? selectedIndex : 0);
+            bindEvents();
+        }
+
+        init();
+    })();
+</script>
+</body>
 </html>
