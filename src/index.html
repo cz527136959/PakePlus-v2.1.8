@@ -3,871 +3,942 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图片墙 · 编辑模式无高亮 + 固定初始图</title>
+    <title>翻翻乐网格·图片无默认·弹窗字独立编辑</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            user-select: none;
         }
         body {
-            background: #f4f7fb;
             margin: 0;
             min-height: 100vh;
+            background: #e0e5ec;
             display: flex;
             justify-content: center;
-            padding: 1.5rem;
-            position: relative;
-        }
-        .app-container {
-            max-width: 1400px;
-            width: 100%;
-            background: white;
-            border-radius: 2rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            padding: 2rem;
-        }
-        h1 {
-            font-weight: 600;
-            font-size: 1.8rem;
-            margin: 0 0 0.25rem 0;
-            color: #1e293b;
-            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
         }
-        .subhead {
-            color: #475569;
-            margin-bottom: 2rem;
-            font-size: 1rem;
-            border-left: 4px solid #a5b4fc;
-            padding-left: 1rem;
-            background: #f8fafc;
-            border-radius: 0 1rem 1rem 0;
-            line-height: 1.5;
-        }
-        /* 控制面板 */
-        .control-panel {
-            background: #ffffffdd;
-            backdrop-filter: blur(4px);
-            border: 1px solid #e2e8f0;
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+        .app {
+            width: 900px;
+            height: 700px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            overflow: hidden;
+            border: 1px solid #d0d9e2;
         }
-        .size-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1rem;
-            background: #f1f4f9;
-            padding: 1rem 1.5rem;
-            border-radius: 3rem;
-        }
-        .size-row label {
-            font-weight: 600;
-            color: #1e293b;
-        }
-        .size-row input {
-            width: 100px;
-            padding: 0.6rem 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 40px;
-            font-size: 1rem;
-            text-align: center;
-            background: white;
-        }
-        .size-row input:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        }
-        .size-row button {
-            background: #4f46e5;
-            border: none;
-            color: white;
-            padding: 0.6rem 1.8rem;
-            border-radius: 40px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.15s;
-            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
-        }
-        .size-row button:hover {
-            background: #4338ca;
-        }
-        .info-edit-wrapper {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            align-items: flex-start;
-        }
-        .info-area {
-            flex: 2;
-            min-width: 280px;
-        }
-        .edit-area {
-            flex: 3;
-            min-width: 300px;
-        }
-        .selected-badge {
-            background: #e0e7ff;
-            color: #1e3a8a;
-            font-weight: 600;
-            padding: 0.4rem 1rem;
-            border-radius: 40px;
-            display: inline-block;
-            font-size: 0.9rem;
-            margin-bottom: 0.8rem;
-        }
-        .current-text-display {
-            background: #f1f5f9;
-            padding: 0.8rem 1rem;
-            border-radius: 18px;
-            font-size: 1rem;
-            margin: 0.5rem 0 1rem 0;
-            border: 1px solid #cbd5e1;
-            word-break: break-word;
-            min-height: 4rem;
-            max-height: 6rem;
+        /* 中部网格 */
+        .grid-container {
+            flex: 1;
+            background: #f5f7fa;
+            padding: 12px;
             overflow-y: auto;
-        }
-        .label {
-            font-weight: 500;
-            color: #334155;
-            margin-bottom: 0.3rem;
-            font-size: 0.9rem;
-        }
-        .row {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            align-items: center;
-            margin-top: 0.8rem;
+            justify-content: center;
+            scrollbar-width: thin;
+            scrollbar-color: #b0c4de #e2e8f0;
         }
-        textarea {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            resize: vertical;
-            background: white;
-            transition: 0.15s;
-            font-family: inherit;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
-        }
-        button {
-            background: white;
-            border: 1px solid #cbd5e1;
-            padding: 0.6rem 1.4rem;
-            border-radius: 40px;
-            font-weight: 500;
-            color: #1e293b;
-            cursor: pointer;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-        button:hover {
-            background: #f1f5f9;
-            border-color: #94a3b8;
-        }
-        button.primary {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: white;
-        }
-        button.primary:hover {
-            background: #4338ca;
-        }
-        .file-input {
-            display: none;
-        }
-        /* 网格 — 固定10列 */
         .grid {
             display: grid;
-            grid-template-columns: repeat(10, minmax(110px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-            padding: 0.5rem 0.2rem 0.5rem 0.2rem;
-            background: #f9f9fc;
-            border-radius: 1.5rem;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            width: 100%;
+            height: fit-content;
         }
         .card {
-            background: white;
-            border-radius: 1.2rem;
-            padding: 0.8rem 0.5rem 0.5rem 0.5rem;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.02);
-            transition: all 0.15s;
-            border: 2px solid transparent;
+            aspect-ratio: 1 / 1;
+            background: #2c4053;
+            border-radius: 16px;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
-        }
-        .card.selected {
-            border-color: #4f46e5;
-            background: #f5f3ff;
-            transform: scale(1.01);
-            box-shadow: 0 12px 24px -8px rgba(79, 70, 229, 0.3);
+            border: 3px solid transparent;
+            overflow: hidden;
         }
         .card img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 14px;
-            background: #eef2f6;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            pointer-events: none;
-            border: 1px solid #e9eef2;
-        }
-        /* 隐藏编号 */
-        .card-index {
-            display: none;
-        }
-        .hint {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-top: 0.5rem;
-        }
-        .footer-actions {
-            display: flex;
-            gap: 0.8rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-            border-top: 1px dashed #d1d9e6;
-            padding-top: 1.5rem;
-            align-items: center;
-        }
-        /* 中央弹窗模态框 — 无序号 */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.3);
+            object-fit: cover;
+            display: block;
+            border-radius: 12px;
+            pointer-events: none;
+        }
+        .card span {
+            font-size: 2.2rem;
+            line-height: 1;
+            color: white;
+            text-shadow: 2px 2px 2px #00000060;
+            font-weight: bold;
+        }
+        .card.clicked {
+            opacity: 0.9;
+            filter: brightness(1.1);
+            border-color: #4caf92;
+        }
+
+        /* 顶部自定义编辑区 - 新布局两行 */
+        .custom-edit-panel {
+            background: #ffffff;
+            padding: 12px 16px;
+            border-top: 2px solid #dde3e9;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            color: #1e2a36;
+        }
+        .row-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+        /* 编辑模式复选框 */
+        .edit-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f4f8;
+            padding: 3px 12px;
+            border-radius: 30px;
+            border: 1px solid #ccd7e4;
+        }
+        .edit-toggle label {
+            color: #1e3b5c;
+        }
+        .edit-toggle input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+        /* 数量设置 */
+        .count-area {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f4f8;
+            padding: 3px 12px;
+            border-radius: 30px;
+            border: 1px solid #ccd7e4;
+        }
+        .count-area span {
+            color: #1e3b5c;
+        }
+        .count-area input {
+            background: #ffffff;
+            border: 1px solid #b0c8dd;
+            color: #1e2a36;
+            padding: 4px 8px;
+            border-radius: 30px;
+            width: 60px;
+            text-align: center;
+        }
+        .count-area button {
+            background: #ffffff;
+            border: 1px solid #2c5f8a;
+            color: #1e3b5c;
+            padding: 4px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .count-area button:hover {
+            background: #e1effa;
+        }
+        /* 图片字段公共样式 */
+        .image-field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f4f8;
+            padding: 5px 10px;
+            border-radius: 40px;
+            flex-wrap: wrap;
+            border: 1px solid #ccd7e4;
+        }
+        .image-preview {
+            width: 36px;
+            height: 36px;
+            background: #e6edf5;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid #a0b8d0;
+            overflow: hidden;
+            color: #2c3e50;
+        }
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-preview span {
+            font-size: 1.6rem;
+            line-height: 1;
+            color: #2c3e50;
+        }
+        .field-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .field-actions button {
+            background: #ffffff;
+            border: 1px solid #b0c8dd;
+            color: #1e3b5c;
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.1s;
+        }
+        .field-actions button:hover {
+            background: #e1effa;
+        }
+        /* 第二行布局 */
+        .row-bottom {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+        /* 弹窗字编辑按钮 */
+        .edit-text-btn {
+            background: #ffffff;
+            border: 1px solid #2c5f8a;
+            color: #1e3b5c;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .edit-text-btn:hover {
+            background: #e6f0fa;
+        }
+        #selectedHint {
+            color: #b85c1a;
+            margin-left: auto;
+            font-weight: 500;
+        }
+
+        /* 底部功能栏 */
+        .bottom-actions {
+            background: #ffffff;
+            padding: 10px 16px;
+            border-top: 2px solid #dde3e9;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px 20px;
+        }
+        .bottom-actions button, .bottom-actions select {
+            background: #ffffff;
+            border: 1px solid #b0c8dd;
+            color: #1e3b5c;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .bottom-actions button:hover {
+            background: #e1effa;
+        }
+        .bottom-actions select {
+            width: 140px;
+            background: #ffffff;
+        }
+
+        /* 弹窗 (主弹窗) */
+        .popup-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .popup-content {
+            width: 520px;
+            background: #ffffff;
+            border-radius: 40px;
+            padding: 24px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+            border: 2px solid #9bb7d4;
+            color: #1e2a36;
+        }
+        .popup-left {
+            flex: 0 0 100px;
+            height: 100px;
+            background: #eef4fa;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            border: 2px solid #7fa1c2;
+            overflow: hidden;
+            color: #2c3e50;
+        }
+        .popup-left img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .popup-right {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f7ff;
+            padding: 16px;
+            border-radius: 28px;
+            font-size: 1rem;
+            line-height: 1.5;
+            border: 1px solid #9bb7d4;
+            color: #1e3b5c;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            min-height: 100px;
+            text-align: center;
+        }
+        .close-popup {
+            position: absolute;
+            top: 20px; right: 30px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .close-popup:hover {
+            background: #b71c1c;
+        }
+
+        /* 弹窗字编辑弹窗 */
+        .text-edit-dialog {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+        }
+        .text-edit-box {
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border: 3px solid #6d8eb0;
+        }
+        .text-edit-box h3 {
+            color: #1e3b5c;
+            margin: 0;
+        }
+        .text-edit-box input {
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 1px solid #b0c8dd;
+            background: #f5f9ff;
+            color: #1e2a36;
+            font-size: 1rem;
+            width: 300px;
+        }
+        .text-edit-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .text-edit-actions button {
+            padding: 10px 30px;
+            border-radius: 40px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-save {
+            background: #4e8ab0;
+            color: white;
+        }
+        .btn-cancel {
+            background: #ccc;
+            color: #1e2a36;
+        }
+
+        /* 二次确认弹窗白底 */
+        .confirm-dialog {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
         }
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 80%;
-            box-shadow: 0 30px 50px rgba(0,0,0,0.3);
-            position: relative;
+        .confirm-box {
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 60px;
             text-align: center;
+            border: 3px solid #bc8c5c;
+            color: #1e2a36;
         }
-        .modal-content p {
-            font-size: 1.2rem;
-            color: #1e293b;
-            margin: 1rem 0;
-            word-break: break-word;
-            white-space: pre-wrap;
+        .confirm-box h3 {
+            color: #2c3e50;
         }
-        .modal-close {
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            background: none;
+        .confirm-box p {
+            color: #2c3e50;
+        }
+        .confirm-box button {
+            margin: 10px 15px;
+            padding: 10px 30px;
+            border-radius: 40px;
             border: none;
-            font-size: 1.8rem;
-            line-height: 1;
+            font-weight: bold;
             cursor: pointer;
-            color: #94a3b8;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
+        }
+        .btn-yes { background: #a54242; color: white; }
+        .btn-no { background: #3d6b8c; color: white; }
+
+        /* 模板命名弹窗白底 */
+        .template-dialog {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            z-index: 2100;
         }
-        .modal-close:hover {
-            background: #f1f5f9;
-            color: #475569;
+        .template-box {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border: 3px solid #6d8eb0;
         }
-        /* 编辑模式开关样式 */
-        .edit-mode-btn {
-            background: #e0e7ff;
-            border-color: #818cf8;
-            color: #1e3a8a;
-            font-weight: 600;
+        .template-box h3 {
+            color: #1e3b5c;
+            margin: 0;
         }
-        .edit-mode-btn.active {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: white;
+        .template-box input {
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 1px solid #b0c8dd;
+            background: #f5f9ff;
+            color: #1e2a36;
+            font-size: 1rem;
+        }
+        .template-actions button {
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: none;
+            margin: 0 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .hidden-upload {
+            display: none;
         }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <h1>🖼️ 图片墙 · 编辑模式无高亮 + 固定初始图</h1>
-    <div class="subhead">每个格子初始图片固定不动；文字和点击后图片绑定，可随机打乱；初始化顺序恢复原始配对。编辑模式下点击图片无高亮边框，仅编辑区更新。</div>
-
-    <!-- 控制面板 -->
-    <div class="control-panel">
-        <!-- 第一行：数量控制 -->
-        <div class="size-row">
-            <label>🔢 格子数量</label>
-            <input type="number" id="sizeInput" min="1" max="500" value="50" step="1">
-            <button id="resizeBtn">调整数量</button>
-            <span style="color:#475569; font-size:0.9rem;">（始终按10列排列）</span>
-        </div>
-
-        <!-- 第二行：编辑区 -->
-        <div class="info-edit-wrapper">
-            <div class="info-area">
-                <div class="selected-badge" id="selectedBadge">⚡ 当前选中: 第1项</div>
-                <div class="label">📄 当前文字 (只读预览)</div>
-                <div class="current-text-display" id="currentTextDisplay">这是第1个选项的描述。</div>
-            </div>
-            <div class="edit-area">
-                <div class="label">✏️ 编辑文字 (修改后点“更新”)</div>
-                <textarea id="editTextInput" rows="2" placeholder="在这里修改当前选中项的文字..."></textarea>
-                <div class="row">
-                    <button class="primary" id="updateTextBtn">💾 更新当前文字</button>
-                    <button id="changeInitialPicBtn">🖼️ 更换初始图片</button>
-                    <button id="setClickedPicBtn">🔁 设置点击后图片</button>
-                    <input type="file" id="fileInput" class="file-input" accept="image/*">
-                </div>
-                <div class="hint">• 点击图片弹出文字 • 图片变点击后图 • 可分别上传两种图片</div>
-            </div>
-        </div>
-    </div>
-
+<div class="app">
     <!-- 网格容器 -->
-    <div class="grid" id="gridContainer"></div>
-
-    <!-- 底部工具条 + 编辑模式开关 -->
-    <div class="footer-actions">
-        <button id="toggleEditModeBtn" class="edit-mode-btn">📝 编辑模式: 关</button>
-        <button id="shuffleBtn">🎲 随机打乱文字+点击图</button>
-        <button id="initOrderBtn">🔄 初始化顺序</button>
-        <button id="resetBtn">🔁 重置内容为默认</button>
-        <span style="flex:1; text-align:right; font-size:0.85rem; color:#94a3b8;" id="storageStatus">📦 本地自动保存 ✓</span>
+    <div class="grid-container" id="gridContainer">
+        <div class="grid" id="grid"></div>
     </div>
-</div>
 
-<!-- 中央弹窗（无序号） -->
-<div id="modalOverlay" class="modal-overlay">
-    <div class="modal-content">
-        <button class="modal-close" id="modalClose">&times;</button>
-        <p id="modalText">这是文字内容</p>
+    <!-- 顶部自定义编辑区 - 新布局两行 (无默认按钮) -->
+    <div class="custom-edit-panel" id="editPanel">
+        <!-- 第一行：编辑模式、数量设置、未点击图片 -->
+        <div class="row-top">
+            <div class="edit-toggle">
+                <input type="checkbox" id="editModeCheckbox">
+                <label for="editModeCheckbox">编辑模式</label>
+            </div>
+            <div class="count-area">
+                <span>数量:</span>
+                <input type="number" id="itemCount" min="1" max="200" value="10" step="1">
+                <button id="applyCount">设置</button>
+            </div>
+            <!-- 未点击图片 (无默认按钮) -->
+            <div class="image-field">
+                <div class="image-preview" id="previewPre">🖼️</div>
+                <span>未点</span>
+                <div class="field-actions">
+                    <button id="uploadPreBtn">📎上传</button>
+                    <!-- 默认按钮已移除 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 第二行：弹窗图、已点图片、设置弹窗字按钮、选中提示 -->
+        <div class="row-bottom">
+            <!-- 弹窗图片 (无默认按钮) -->
+            <div class="image-field">
+                <div class="image-preview" id="previewPopImg">🌄</div>
+                <span>弹窗图</span>
+                <div class="field-actions">
+                    <button id="uploadPopImgBtn">📎上传</button>
+                    <!-- 默认按钮已移除 -->
+                </div>
+            </div>
+            <!-- 点击后图片 - 文字改为"已点" (无默认按钮) -->
+            <div class="image-field">
+                <div class="image-preview" id="previewClicked">✨</div>
+                <span>已点</span>
+                <div class="field-actions">
+                    <button id="uploadClickedBtn">📎上传</button>
+                    <!-- 默认按钮已移除 -->
+                </div>
+            </div>
+            <!-- 设置弹窗字按钮 (取代输入框和应用按钮) -->
+            <button class="edit-text-btn" id="editTextBtn">✎设置弹窗字</button>
+            <!-- 选中提示 -->
+            <span id="selectedHint">未选中</span>
+        </div>
+    </div>
+
+    <!-- 底部功能栏 -->
+    <div class="bottom-actions">
+        <button id="saveTemplateBtn">💾保存模板</button>
+        <select id="templateSelect">
+            <option value="">加载模板...</option>
+        </select>
+        <button id="randomBtn">🎲随机</button>
+        <button id="resetPosBtn">↺初始化</button>
+        <button id="resetAllBtn">⚠重置</button>
+    </div>
+
+    <!-- 隐藏的文件输入框 -->
+    <input type="file" id="filePre" accept="image/*" class="hidden-upload">
+    <input type="file" id="filePopImg" accept="image/*" class="hidden-upload">
+    <input type="file" id="fileClicked" accept="image/*" class="hidden-upload">
+
+    <!-- 主弹窗 (用于展示点击后效果) -->
+    <div class="popup-modal" id="popupModal">
+        <div class="popup-content">
+            <div class="popup-left" id="popupLeft">🐱</div>
+            <div class="popup-right" id="popupRight">默认文字</div>
+        </div>
+        <button class="close-popup" id="closePopupBtn">&times;</button>
+    </div>
+
+    <!-- 弹窗字编辑弹窗 -->
+    <div class="text-edit-dialog" id="textEditDialog">
+        <div class="text-edit-box">
+            <h3>编辑弹窗文字</h3>
+            <input type="text" id="textEditInput" placeholder="最多20字" maxlength="20">
+            <div class="text-edit-actions">
+                <button class="btn-save" id="textEditSave">保存</button>
+                <button class="btn-cancel" id="textEditCancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 随机二次确认弹窗 -->
+    <div class="confirm-dialog" id="randomConfirmDialog">
+        <div class="confirm-box">
+            <h3>🎲 随机打乱</h3>
+            <p>确定要随机交换弹窗图/文字/点击后图吗？<br>所有格子将变为未点击状态。</p>
+            <button class="btn-yes" id="randomConfirmYes">确定</button>
+            <button class="btn-no" id="randomConfirmNo">取消</button>
+        </div>
+    </div>
+
+    <!-- 全部重置二次确认弹窗 -->
+    <div class="confirm-dialog" id="confirmResetDialog">
+        <div class="confirm-box">
+            <h3>⚠️ 全部重置</h3>
+            <p>所有内容(数量/自定义)将恢复默认！</p>
+            <button class="btn-yes" id="confirmResetYes">确定</button>
+            <button class="btn-no" id="confirmResetNo">取消</button>
+        </div>
+    </div>
+
+    <!-- 模板命名弹窗 -->
+    <div class="template-dialog" id="templateNameDialog">
+        <div class="template-box">
+            <h3 style="color:#1e3b5c;">保存模板</h3>
+            <input type="text" id="templateNameInput" placeholder="输入模板名称" autocomplete="off">
+            <div class="template-actions">
+                <button id="saveTemplateConfirm" style="background:#4e8ab0; color:white;">保存</button>
+                <button id="saveTemplateCancel" style="background:#ccc; color:#1e2a36;">取消</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
     (function() {
-        // ---------- 配置 ----------
-        const STORAGE_KEY = 'flexibleGridData';
-        const MAX_ITEMS = 500;
-        const DEFAULT_SIZE = 50;
+        // ---------- 核心数据结构 ----------
+        let items = [];                // { pre, popImg, popText, clickedImg, clicked, originalIndex }
+        let baseItems = [];            // 原始分配快照 (无clicked)
+
+        const DEFAULT_PRE = '🖼️';
+        const DEFAULT_POPIMG = '🌄';
+        const DEFAULT_POPTEXT = '说明';
+        const DEFAULT_CLICKEDIMG = '✨';
+
+        let templates = JSON.parse(localStorage.getItem('FANFANLE_TEMPLATES')) || [];
 
         // DOM 元素
-        const gridEl = document.getElementById('gridContainer');
-        const selectedBadge = document.getElementById('selectedBadge');
-        const currentTextDisplay = document.getElementById('currentTextDisplay');
-        const editTextInput = document.getElementById('editTextInput');
-        const updateTextBtn = document.getElementById('updateTextBtn');
-        const changeInitialPicBtn = document.getElementById('changeInitialPicBtn');
-        const setClickedPicBtn = document.getElementById('setClickedPicBtn');
-        const fileInput = document.getElementById('fileInput');
-        const resetBtn = document.getElementById('resetBtn');
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        const initOrderBtn = document.getElementById('initOrderBtn');
-        const toggleEditModeBtn = document.getElementById('toggleEditModeBtn');
-        const storageStatus = document.getElementById('storageStatus');
-        const sizeInput = document.getElementById('sizeInput');
-        const resizeBtn = document.getElementById('resizeBtn');
+        const gridEl = document.getElementById('grid');
+        const itemCountInput = document.getElementById('itemCount');
+        const applyCountBtn = document.getElementById('applyCount');
+        const editModeCheck = document.getElementById('editModeCheckbox');
+        const randomBtn = document.getElementById('randomBtn');
+        const resetPosBtn = document.getElementById('resetPosBtn');
+        const resetAllBtn = document.getElementById('resetAllBtn');
+        const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+        const templateSelect = document.getElementById('templateSelect');
+        const selectedHint = document.getElementById('selectedHint');
+        const popupModal = document.getElementById('popupModal');
+        const popupLeft = document.getElementById('popupLeft');
+        const popupRight = document.getElementById('popupRight');
+        const closePopupBtn = document.getElementById('closePopupBtn');
+        const confirmResetDialog = document.getElementById('confirmResetDialog');
+        const confirmResetYes = document.getElementById('confirmResetYes');
+        const confirmResetNo = document.getElementById('confirmResetNo');
+        const randomConfirmDialog = document.getElementById('randomConfirmDialog');
+        const randomConfirmYes = document.getElementById('randomConfirmYes');
+        const randomConfirmNo = document.getElementById('randomConfirmNo');
+        const templateNameDialog = document.getElementById('templateNameDialog');
+        const templateNameInput = document.getElementById('templateNameInput');
+        const saveTemplateConfirm = document.getElementById('saveTemplateConfirm');
+        const saveTemplateCancel = document.getElementById('saveTemplateCancel');
 
-        // 模态框元素
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalClose = document.getElementById('modalClose');
-        const modalText = document.getElementById('modalText');
+        // 新增加的弹窗字编辑相关
+        const editTextBtn = document.getElementById('editTextBtn');
+        const textEditDialog = document.getElementById('textEditDialog');
+        const textEditInput = document.getElementById('textEditInput');
+        const textEditSave = document.getElementById('textEditSave');
+        const textEditCancel = document.getElementById('textEditCancel');
 
-        // ---------- 核心数据结构 ----------
-        // grids: 每个格子固定属性 { initialImageUrl, clicked }
-        // stickers: 每个贴纸 { text, clickedImageUrl, originalIndex }，originalIndex 记录该贴纸原本所属的格子索引
-        let grids = [];
-        let stickers = [];
-        let selectedIndex = 0;          // 当前选中的格子索引
-        let uploadMode = 'initial';      // 'initial' 或 'clicked'
-        let editMode = false;            // 编辑模式：true=编辑模式（点击不触发效果，无高亮），false=正常模式
+        // 预览元素
+        const previewPre = document.getElementById('previewPre');
+        const previewPopImg = document.getElementById('previewPopImg');
+        const previewClicked = document.getElementById('previewClicked');
 
-        // ---------- 工具函数：默认图片 ----------
-        function createDefaultInitialImageURL(index) {
-            const hue = (index * 31) % 360;
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-                <rect width="100" height="100" fill="hsl(${hue}, 70%, 60%)" />
-                <text x="50" y="50" font-size="36" text-anchor="middle" dy="0.35em" fill="white" font-family="Arial, sans-serif" font-weight="bold">${index+1}</text>
-            </svg>`;
-            return 'data:image/svg+xml,' + encodeURIComponent(svg);
-        }
+        // 文件上传
+        const filePre = document.getElementById('filePre');
+        const filePopImg = document.getElementById('filePopImg');
+        const fileClicked = document.getElementById('fileClicked');
+        const uploadPreBtn = document.getElementById('uploadPreBtn');
+        const uploadPopImgBtn = document.getElementById('uploadPopImgBtn');
+        const uploadClickedBtn = document.getElementById('uploadClickedBtn');
 
-        function createDefaultClickedImageURL(index) {
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-                <rect width="100" height="100" fill="#9ca3af" rx="12" ry="12" />
-                <circle cx="50" cy="50" r="25" fill="white" />
-                <path d="M38 50 L48 60 L62 40" stroke="#4f46e5" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>`;
-            return 'data:image/svg+xml,' + encodeURIComponent(svg);
-        }
+        let currentSelectedIndex = -1;
+        let editMode = false;
 
-        // 生成默认数据
-        function generateDefaultData(count) {
-            const newGrids = [];
-            const newStickers = [];
-            for (let i = 0; i < count; i++) {
-                newGrids.push({
-                    initialImageUrl: createDefaultInitialImageURL(i),
-                    clicked: false
-                });
-                newStickers.push({
-                    text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`,
-                    clickedImageUrl: createDefaultClickedImageURL(i),
-                    originalIndex: i
-                });
-            }
-            return { grids: newGrids, stickers: newStickers };
-        }
-
-        // 深拷贝
-        function deepCopyData() {
+        // ---------- 辅助函数 ----------
+        function createDefaultItem(index) {
             return {
-                grids: JSON.parse(JSON.stringify(grids)),
-                stickers: JSON.parse(JSON.stringify(stickers))
+                pre: DEFAULT_PRE,
+                popImg: DEFAULT_POPIMG,
+                popText: DEFAULT_POPTEXT,
+                clickedImg: DEFAULT_CLICKEDIMG,
+                clicked: false,
+                originalIndex: index
             };
         }
 
-        // ---------- 本地存储 ----------
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({ grids, stickers }));
-                storageStatus.innerText = '📦 已自动保存到本地 ✓';
-                storageStatus.style.color = '#4f46e5';
-            } catch (e) {
-                console.warn('存储失败', e);
-                let msg = '⚠️ 保存失败';
-                if (e.name === 'QuotaExceededError') {
-                    msg = '⚠️ 本地存储空间不足，图片可能过大';
-                }
-                storageStatus.innerText = msg;
-                storageStatus.style.color = '#b91c1c';
-            }
-        }
-
-        function loadFromLocalStorage() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return null;
-            try {
-                const parsed = JSON.parse(raw);
-                if (parsed && Array.isArray(parsed.grids) && Array.isArray(parsed.stickers) &&
-                    parsed.grids.length === parsed.stickers.length) {
-                    // 简单验证
-                    const valid = parsed.grids.every(g => g && typeof g.initialImageUrl === 'string') &&
-                                 parsed.stickers.every(s => s && typeof s.text === 'string' && typeof s.clickedImageUrl === 'string' && typeof s.originalIndex === 'number');
-                    if (valid) {
-                        // 确保 clicked 字段存在
-                        parsed.grids.forEach(g => g.clicked = g.clicked || false);
-                        return parsed;
-                    }
-                }
-            } catch (e) {}
-            return null;
-        }
-
-        // 初始化数据
-        function initData() {
-            const stored = loadFromLocalStorage();
-            if (stored) {
-                grids = stored.grids;
-                stickers = stored.stickers;
-                sizeInput.value = grids.length;
+        function rebuildItems(count, useDefault = true, baseArray = null) {
+            if (useDefault) {
+                items = [];
+                for (let i = 0; i < count; i++) items.push(createDefaultItem(i));
+                baseItems = items.map(it => ({
+                    pre: it.pre, popImg: it.popImg, popText: it.popText, clickedImg: it.clickedImg
+                }));
             } else {
-                const defaultData = generateDefaultData(DEFAULT_SIZE);
-                grids = defaultData.grids;
-                stickers = defaultData.stickers;
-                sizeInput.value = DEFAULT_SIZE;
-            }
-            if (selectedIndex >= grids.length) selectedIndex = grids.length - 1;
-            if (selectedIndex < 0 && grids.length > 0) selectedIndex = 0;
-        }
-
-        // ---------- 高亮刷新函数（根据 editMode 和 selectedIndex 更新卡片 selected 类）----------
-        function refreshHighlight() {
-            const cards = gridEl.querySelectorAll('.card');
-            if (editMode) {
-                // 编辑模式下，移除所有高亮
-                cards.forEach(card => card.classList.remove('selected'));
-            } else {
-                // 正常模式下，给当前选中的卡片添加高亮，其余移除
-                cards.forEach((card, idx) => {
-                    if (idx === selectedIndex) {
-                        card.classList.add('selected');
-                    } else {
-                        card.classList.remove('selected');
-                    }
-                });
-            }
-        }
-
-        // ---------- 渲染网格 ----------
-        function renderGrid() {
-            gridEl.innerHTML = '';
-            for (let i = 0; i < grids.length; i++) {
-                const grid = grids[i];
-                const sticker = stickers[i]; // 当前格子显示的贴纸
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.dataset.index = i;
-
-                const img = document.createElement('img');
-                // 显示逻辑：如果格子已点击，则显示当前贴纸的点击后图片，否则显示格子的初始图片
-                img.src = grid.clicked ? sticker.clickedImageUrl : grid.initialImageUrl;
-                img.alt = `选项${i+1}`;
-                img.loading = 'lazy';
-
-                card.appendChild(img);
-                gridEl.appendChild(card);
-            }
-            // 根据当前模式刷新高亮
-            refreshHighlight();
-            updateInfoPanelForIndex(selectedIndex);
-        }
-
-        // 更新单个卡片图片（根据当前状态）
-        function updateCardImage(index) {
-            const cards = gridEl.querySelectorAll('.card');
-            if (index >= 0 && index < cards.length) {
-                const img = cards[index].querySelector('img');
-                const grid = grids[index];
-                const sticker = stickers[index];
-                if (img && grid && sticker) {
-                    img.src = grid.clicked ? sticker.clickedImageUrl : grid.initialImageUrl;
-                }
-            }
-        }
-
-        // 更新信息面板
-        function updateInfoPanelForIndex(index) {
-            if (!grids.length) {
-                selectedBadge.innerText = '⚡ 没有格子';
-                currentTextDisplay.innerText = '—';
-                editTextInput.value = '';
-                return;
-            }
-            if (index < 0 || index >= grids.length) index = 0;
-            const sticker = stickers[index];
-            currentTextDisplay.innerText = sticker.text;
-            editTextInput.value = sticker.text;
-            selectedBadge.innerText = `⚡ 当前选中: 第${index+1}项 / 共${grids.length}项`;
-        }
-
-        function setSelectedIndex(index) {
-            if (!grids.length) {
-                selectedIndex = -1;
-                updateInfoPanelForIndex(-1);
-                return;
-            }
-            if (index < 0) index = 0;
-            if (index >= grids.length) index = grids.length - 1;
-            if (index === selectedIndex && index >= 0) {
-                // 相同索引也要刷新面板，但不需要刷新高亮（因为高亮可能因模式变化已正确）
-                updateInfoPanelForIndex(index);
-                return;
-            }
-
-            selectedIndex = index;
-            // 根据当前模式更新高亮
-            refreshHighlight();
-            updateInfoPanelForIndex(index);
-        }
-
-        function updateCurrentText() {
-            if (selectedIndex < 0 || !grids.length) {
-                alert('没有可编辑的格子');
-                return;
-            }
-            const newText = editTextInput.value.trim() || '(空描述)';
-            stickers[selectedIndex].text = newText;
-            currentTextDisplay.innerText = newText;
-            saveToLocalStorage();
-        }
-
-        // 调整格子数量
-        function resizeItems(newSize) {
-            newSize = Math.min(MAX_ITEMS, Math.max(1, parseInt(newSize, 10) || 1));
-            const oldLength = grids.length;
-            if (newSize === oldLength) return;
-
-            let newGrids, newStickers;
-            if (newSize > oldLength) {
-                newGrids = grids.slice();
-                newStickers = stickers.slice();
-                for (let i = oldLength; i < newSize; i++) {
-                    newGrids.push({
-                        initialImageUrl: createDefaultInitialImageURL(i),
-                        clicked: false
-                    });
-                    newStickers.push({
-                        text: `第 ${i+1} 号选项的描述。点击图片选中，可自由编辑。`,
-                        clickedImageUrl: createDefaultClickedImageURL(i),
+                items = [];
+                for (let i = 0; i < count; i++) {
+                    let base = baseArray[i] || { pre:DEFAULT_PRE, popImg:DEFAULT_POPIMG, popText:DEFAULT_POPTEXT, clickedImg:DEFAULT_CLICKEDIMG };
+                    items.push({
+                        pre: base.pre,
+                        popImg: base.popImg,
+                        popText: base.popText,
+                        clickedImg: base.clickedImg,
+                        clicked: false,
                         originalIndex: i
                     });
                 }
+                baseItems = items.map(it => ({ pre: it.pre, popImg: it.popImg, popText: it.popText, clickedImg: it.clickedImg }));
+            }
+            currentSelectedIndex = -1;
+            clearSelectedHint();
+            renderGrid();
+            updateScrollable();
+        }
+
+        function updateScrollable() {
+            document.getElementById('gridContainer').style.overflowY = items.length > 50 ? 'auto' : 'hidden';
+        }
+
+        function renderGrid() {
+            let html = '';
+            items.forEach((item, idx) => {
+                const content = item.clicked ? item.clickedImg : item.pre;
+                const clickedClass = item.clicked ? 'clicked' : '';
+                let innerHtml = (typeof content === 'string' && content.startsWith('data:image/'))
+                    ? `<img src="${content}" alt="img">` : `<span>${content}</span>`;
+                html += `<div class="card ${clickedClass}" data-index="${idx}">${innerHtml}</div>`;
+            });
+            gridEl.innerHTML = html;
+        }
+
+        function setPreview(previewEl, value) {
+            if (typeof value === 'string' && value.startsWith('data:image/')) {
+                previewEl.innerHTML = `<img src="${value}" alt="preview">`;
             } else {
-                newGrids = grids.slice(0, newSize);
-                newStickers = stickers.slice(0, newSize);
-                // 注意：截断后，超出部分的贴纸被丢弃，但它们的 originalIndex 可能大于新长度，这没关系，因为不再使用。
+                previewEl.innerHTML = `<span>${value}</span>`;
             }
-
-            grids = newGrids;
-            stickers = newStickers;
-            if (selectedIndex >= newSize) selectedIndex = newSize - 1;
-            if (selectedIndex < 0 && newSize > 0) selectedIndex = 0;
-
-            renderGrid();
-            sizeInput.value = newSize;
-            saveToLocalStorage();
         }
 
-        // ---------- 随机打乱文字+点击后图片（仅打乱 stickers 数组，保持 originalIndex 不变）----------
-        function shuffleStickers() {
-            if (stickers.length === 0) return;
-            // Fisher-Yates 打乱 stickers 数组
-            for (let i = stickers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [stickers[i], stickers[j]] = [stickers[j], stickers[i]];
-            }
-            // 打乱后，所有格子的 clicked 状态应重置为 false，因为贴纸变了
-            grids.forEach(g => g.clicked = false);
-            // 重新渲染网格
-            renderGrid();
-            saveToLocalStorage();
+        function clearSelectedHint() {
+            selectedHint.innerText = '未选中';
+            // 不重置预览，保持显示上次内容？但通常选中清除时预览可恢复默认？为了一致性，我们重置为默认。
+            previewPre.innerHTML = '🖼️';
+            previewPopImg.innerHTML = '🌄';
+            previewClicked.innerHTML = '✨';
         }
 
-        // ---------- 初始化顺序：按 originalIndex 排序 stickers，恢复原始配对，并重置点击状态 ----------
-        function restoreOriginalOrder() {
-            if (stickers.length === 0) return;
-            // 按 originalIndex 升序排序 stickers
-            stickers.sort((a, b) => a.originalIndex - b.originalIndex);
-            // 重置所有格子点击状态
-            grids.forEach(g => g.clicked = false);
-            renderGrid();
-            saveToLocalStorage();
+        function loadItemToEdit(index) {
+            if (!editMode || index < 0 || index >= items.length) return;
+            const it = items[index];
+            setPreview(previewPre, it.pre);
+            setPreview(previewPopImg, it.popImg);
+            setPreview(previewClicked, it.clickedImg);
+            selectedHint.innerText = `编辑 #${index+1}`;
         }
 
-        // ---------- 重置内容为默认（图片和文字都变为默认）----------
-        function resetToDefault() {
-            const count = grids.length;
-            const defaultData = generateDefaultData(count);
-            grids = defaultData.grids;
-            stickers = defaultData.stickers;
-            renderGrid();
-            setSelectedIndex(0);
-            saveToLocalStorage();
+        function showPopup(popImg, popText) {
+            setPreview(popupLeft, popImg);
+            popupRight.innerText = popText;
+            popupModal.style.display = 'flex';
         }
 
-        // ---------- 中央弹窗 ----------
-        function showModal(text) {
-            modalText.innerText = text;
-            modalOverlay.style.display = 'flex';
-        }
+        closePopupBtn.addEventListener('click', () => popupModal.style.display = 'none');
 
-        function hideModal() {
-            modalOverlay.style.display = 'none';
-        }
-
-        // ---------- 图片点击处理（正常模式下触发） ----------
-        function handleCardClick(index) {
-            if (index < 0 || index >= grids.length) return;
-            const grid = grids[index];
-            const sticker = stickers[index];
-            if (grid.clicked) return; // 已点击过，无法再次点击
-
-            // 弹出文字
-            showModal(sticker.text);
-
-            // 标记格子为已点击，并更新图片
-            grid.clicked = true;
-            updateCardImage(index);
-            saveToLocalStorage();
-        }
-
-        // ---------- 文件上传处理 ----------
-        function handleFileUpload(mode, targetIndex) {
-            const file = fileInput.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) {
-                alert('请选择一个图片文件');
-                fileInput.value = '';
+        // 网格点击
+        gridEl.addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (!card) return;
+            const index = parseInt(card.dataset.index, 10);
+            if (editMode) {
+                currentSelectedIndex = index;
+                loadItemToEdit(index);
                 return;
             }
-
-            const reader = new FileReader();
-            reader.onload = (loadEvent) => {
-                const dataUrl = loadEvent.target.result;
-                if (targetIndex < 0 || targetIndex >= grids.length) return;
-
-                if (mode === 'initial') {
-                    // 更换格子的初始图片
-                    grids[targetIndex].initialImageUrl = dataUrl;
-                    // 如果该格子尚未点击，则立即更新显示
-                    if (!grids[targetIndex].clicked) {
-                        updateCardImage(targetIndex);
-                    }
-                } else {
-                    // 更换当前格子贴纸的点击后图片
-                    stickers[targetIndex].clickedImageUrl = dataUrl;
-                    // 如果该格子已经点击，则立即更新显示
-                    if (grids[targetIndex].clicked) {
-                        updateCardImage(targetIndex);
-                    }
-                }
-                saveToLocalStorage();
-                fileInput.value = '';
-            };
-            reader.onerror = () => {
-                alert('读取文件失败');
-                fileInput.value = '';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // ---------- 切换编辑模式 ----------
-        function toggleEditMode() {
-            editMode = !editMode;
-            if (editMode) {
-                toggleEditModeBtn.textContent = '📝 编辑模式: 开';
-                toggleEditModeBtn.classList.add('active');
-            } else {
-                toggleEditModeBtn.textContent = '📝 编辑模式: 关';
-                toggleEditModeBtn.classList.remove('active');
+            if (!items[index].clicked) {
+                items[index].clicked = true;
+                showPopup(items[index].popImg, items[index].popText);
+                renderGrid();
             }
-            // 刷新高亮显示
-            refreshHighlight();
-        }
+        });
 
-        // ---------- 事件绑定 ----------
-        function bindEvents() {
-            // 网格点击：先选中，然后根据编辑模式决定是否触发点击效果
-            gridEl.addEventListener('click', (e) => {
-                const card = e.target.closest('.card');
-                if (!card) return;
-                const idx = card.dataset.index;
-                if (idx !== undefined) {
-                    const index = parseInt(idx, 10);
-                    setSelectedIndex(index);
-                    // 只有非编辑模式下才执行真正的点击操作
-                    if (!editMode) {
-                        handleCardClick(index);
-                    }
-                }
-            });
+        // 数量设置
+        applyCountBtn.addEventListener('click', () => {
+            let newCount = parseInt(itemCountInput.value, 10) || 1;
+            itemCountInput.value = newCount;
+            rebuildItems(newCount, true);
+        });
 
-            // 模态框关闭
-            modalClose.addEventListener('click', hideModal);
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) hideModal();
-            });
+        // 编辑模式切换
+        editModeCheck.addEventListener('change', (e) => {
+            editMode = e.target.checked;
+            if (!editMode) {
+                currentSelectedIndex = -1;
+                clearSelectedHint();
+            } else {
+                currentSelectedIndex = -1;
+                clearSelectedHint();
+            }
+        });
 
-            // 更新文字
-            updateTextBtn.addEventListener('click', updateCurrentText);
-
-            // 更换初始图片
-            changeInitialPicBtn.addEventListener('click', () => {
-                if (selectedIndex < 0 || !grids.length) {
-                    alert('请先点击选中一个格子');
-                    return;
-                }
-                uploadMode = 'initial';
-                fileInput.click();
-            });
-
-            // 设置点击后图片
-            setClickedPicBtn.addEventListener('click', () => {
-                if (selectedIndex < 0 || !grids.length) {
-                    alert('请先点击选中一个格子');
-                    return;
-                }
-                uploadMode = 'clicked';
-                fileInput.click();
-            });
-
-            // 文件选择处理
-            fileInput.addEventListener('change', (e) => {
-                const targetIndex = selectedIndex;
-                handleFileUpload(uploadMode, targetIndex);
-            });
-
-            // 重置内容为默认（增加确认弹窗）
-            resetBtn.addEventListener('click', () => {
-                if (confirm('确定要重置所有内容为默认吗？此操作将丢弃您所有自定义的图片和文字。')) {
-                    resetToDefault();
-                    hideModal();
-                    storageStatus.innerText = '📦 已重置并保存';
-                }
-            });
-
-            // 随机打乱文字+点击后图片
-            shuffleBtn.addEventListener('click', () => {
-                shuffleStickers();
-                hideModal();
-            });
-
-            // 初始化顺序
-            initOrderBtn.addEventListener('click', () => {
-                restoreOriginalOrder();
-                hideModal();
-            });
-
-            // 切换编辑模式
-            toggleEditModeBtn.addEventListener('click', toggleEditMode);
-
-            // 调整数量
-            resizeBtn.addEventListener('click', () => {
-                let newSize = parseInt(sizeInput.value, 10);
-                if (isNaN(newSize) || newSize < 1) newSize = 1;
-                if (newSize > MAX_ITEMS) newSize = MAX_ITEMS;
-                sizeInput.value = newSize;
-                resizeItems(newSize);
-                hideModal();
-            });
-
-            sizeInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    resizeBtn.click();
-                }
-            });
-        }
-
-        // ---------- 启动 ----------
-        function init() {
-            initData();
+        // 随机二次确认
+        randomBtn.addEventListener('click', () => {
+            randomConfirmDialog.style.display = 'flex';
+        });
+        randomConfirmYes.addEventListener('click', () => {
+            randomConfirmDialog.style.display = 'none';
+            if (items.length === 0) return;
+            let popImgs = items.map(it => it.popImg);
+            let popTexts = items.map(it => it.popText);
+            let clickedImgs = items.map(it => it.clickedImg);
+            let indices = Array.from({ length: items.length }, (_, i) => i);
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+            for (let i = 0; i < items.length; i++) {
+                items[i].popImg = popImgs[indices[i]];
+                items[i].popText = popTexts[indices[i]];
+                items[i].clickedImg = clickedImgs[indices[i]];
+                items[i].clicked = false;
+            }
             renderGrid();
-            setSelectedIndex(selectedIndex >= 0 ? selectedIndex : 0);
-            bindEvents();
+            if (editMode && currentSelectedIndex !== -1) loadItemToEdit(currentSelectedIndex);
+        });
+        randomConfirmNo.addEventListener('click', () => {
+            randomConfirmDialog.style.display = 'none';
+        });
+
+        // 位置初始化
+        resetPosBtn.addEventListener('click', () => {
+            for (let i = 0; i < items.length; i++) {
+                items[i].popImg = baseItems[i].popImg;
+                items[i].popText = baseItems[i].popText;
+                items[i].clickedImg = baseItems[i].clickedImg;
+                items[i].clicked = false;
+            }
+            renderGrid();
+            if (editMode && currentSelectedIndex !== -1) loadItemToEdit(currentSelectedIndex);
+        });
+
+        // 全部重置二次确认
+        resetAllBtn.addEventListener('click', () => {
+            confirmResetDialog.style.display = 'flex';
+        });
+        confirmResetYes.addEventListener('click', () => {
+            itemCountInput.value = 10;
+            rebuildItems(10, true);
+            confirmResetDialog.style.display = 'none';
+        });
+        confirmResetNo.addEventListener('click', () => {
+            confirmResetDialog.style.display = 'none';
+        });
+
+        // 弹窗字编辑按钮逻辑
+        editTextBtn.addEventListener('click', () => {
+            if (!editMode) {
+                alert('请先进入编辑模式');
+                return;
+            }
+            if (currentSelectedIndex === -1) {
+                alert('请先选中一个格子');
+                return;
+            }
+            // 弹出编辑框，预填当前文字
+            textEditInput.value = items[currentSelectedIndex].popText;
+            textEditDialog.style.display = 'flex';
+        });
+
+        textEditSave.addEventListener('click', () => {
+            if (currentSelectedIndex === -1) {
+                textEditDialog.style.display = 'none';
+                return;
+            }
+            const newText = textEditInput.value.trim() || DEFAULT_POPTEXT;
+            items[currentSelectedIndex].popText = newText;
+            baseItems[currentSelectedIndex].popText = newText; // 同步到基础快照
+            // 更新预览？没有直接预览文字，但选中提示不变
+            // 重新渲染网格（因为文字不显示在格子上，但下次点击弹窗会显示新文字）
+            // 不需要重新渲染，因为文字不影响格子外观
+            textEditDialog.style.display = 'none';
+        });
+
+        textEditCancel.addEventListener('click', () => {
+            textEditDialog.style.display = 'none';
+        });
+
+        // 图片上传逻辑 (无默认按钮)
+        function handleUpload(button, fileInput, fieldName, previewEl) {
+            button.addEventListener('click', () => {
+                if (currentSelectedIndex === -1 || !editMode) {
+                    alert('请先在编辑模式下选中一个格子');
+                    return;
+                }
+                fileInput.click();
+            });
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('请选择图片文件');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const dataUrl = event.target.result;
+                    const idx = currentSelectedIndex;
+                    items[idx][fieldName] = dataUrl;
+                    baseItems[idx][fieldName] = dataUrl;
+                    setPreview(previewEl, dataUrl);
+                    renderGrid();
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = '';
+            });
+        }
+        handleUpload(uploadPreBtn, filePre, 'pre', previewPre);
+        handleUpload(uploadPopImgBtn, filePopImg, 'popImg', previewPopImg);
+        handleUpload(uploadClickedBtn, fileClicked, 'clickedImg', previewClicked);
+
+        // 模板保存
+        saveTemplateBtn.addEventListener('click', () => {
+            templateNameDialog.style.display = 'flex';
+        });
+        saveTemplateConfirm.addEventListener('click', () => {
+            const name = templateNameInput.value.trim();
+            if (!name) { alert('请输入模板名称'); return; }
+            const count = items.length;
+            const templateItems = baseItems.map(b => ({ ...b }));
+            templates.push({ name, count, items: templateItems });
+            localStorage.setItem('FANFANLE_TEMPLATES', JSON.stringify(templates));
+            updateTemplateSelect();
+            templateNameDialog.style.display = 'none';
+            templateNameInput.value = '';
+        });
+        saveTemplateCancel.addEventListener('click', () => {
+            templateNameDialog.style.display = 'none';
+            templateNameInput.value = '';
+        });
+
+        templateSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (!val) return;
+            const template = templates.find(t => t.name === val);
+            if (template) {
+                itemCountInput.value = template.count;
+                rebuildItems(template.count, false, template.items);
+            }
+        });
+
+        function updateTemplateSelect() {
+            let options = '<option value="">加载模板...</option>';
+            templates.forEach(t => options += `<option value="${t.name}">${t.name}</option>`);
+            templateSelect.innerHTML = options;
         }
 
-        init();
+        window.addEventListener('click', (e) => {
+            if (e.target === popupModal) popupModal.style.display = 'none';
+            if (e.target === confirmResetDialog) confirmResetDialog.style.display = 'none';
+            if (e.target === randomConfirmDialog) randomConfirmDialog.style.display = 'none';
+            if (e.target === templateNameDialog) templateNameDialog.style.display = 'none';
+            if (e.target === textEditDialog) textEditDialog.style.display = 'none';
+        });
+
+        // 初始化
+        rebuildItems(10, true);
+        updateTemplateSelect();
     })();
 </script>
 </body>
