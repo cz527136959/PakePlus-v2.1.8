@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>翻翻乐网格·图片无默认·弹窗字独立编辑</title>
+    <title>翻翻乐网格·保存文字简化·导出导入</title>
     <style>
         * {
             box-sizing: border-box;
@@ -80,7 +80,7 @@
             border-color: #4caf92;
         }
 
-        /* 顶部自定义编辑区 - 新布局两行 */
+        /* 顶部自定义编辑区 - 无预览图 */
         .custom-edit-panel {
             background: #ffffff;
             padding: 12px 16px;
@@ -97,7 +97,6 @@
             align-items: center;
             gap: 20px;
         }
-        /* 编辑模式复选框 */
         .edit-toggle {
             display: flex;
             align-items: center;
@@ -115,7 +114,6 @@
             height: 16px;
             margin: 0;
         }
-        /* 数量设置 */
         .count-area {
             display: flex;
             align-items: center;
@@ -149,51 +147,27 @@
         .count-area button:hover {
             background: #e1effa;
         }
-        /* 图片字段公共样式 */
+        /* 图片字段 - 无预览图 */
         .image-field {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 10px;
             background: #f0f4f8;
-            padding: 5px 10px;
+            padding: 5px 15px;
             border-radius: 40px;
-            flex-wrap: wrap;
             border: 1px solid #ccd7e4;
         }
-        .image-preview {
-            width: 36px;
-            height: 36px;
-            background: #e6edf5;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            border: 1px solid #a0b8d0;
-            overflow: hidden;
-            color: #2c3e50;
-        }
-        .image-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .image-preview span {
-            font-size: 1.6rem;
-            line-height: 1;
-            color: #2c3e50;
-        }
-        .field-actions {
-            display: flex;
-            gap: 4px;
+        .image-field span {
+            color: #1e3b5c;
+            font-weight: 500;
         }
         .field-actions button {
             background: #ffffff;
             border: 1px solid #b0c8dd;
             color: #1e3b5c;
-            padding: 4px 8px;
+            padding: 4px 12px;
             border-radius: 30px;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             cursor: pointer;
             white-space: nowrap;
             transition: 0.1s;
@@ -201,14 +175,12 @@
         .field-actions button:hover {
             background: #e1effa;
         }
-        /* 第二行布局 */
         .row-bottom {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 20px;
         }
-        /* 弹窗字编辑按钮 */
         .edit-text-btn {
             background: #ffffff;
             border: 1px solid #2c5f8a;
@@ -227,7 +199,7 @@
             font-weight: 500;
         }
 
-        /* 底部功能栏 */
+        /* 底部功能栏 - 保存按钮文字改为"保存" */
         .bottom-actions {
             background: #ffffff;
             padding: 10px 16px;
@@ -251,11 +223,26 @@
             background: #e1effa;
         }
         .bottom-actions select {
-            width: 140px;
+            width: 100px;
             background: #ffffff;
         }
+        .delete-template-btn {
+            border-color: #d14;
+            color: #d14;
+            font-weight: bold;
+            padding: 6px 12px;
+        }
+        .delete-template-btn:hover {
+            background: #ffe5e5;
+        }
+        .delete-template-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            border-color: #ccc;
+            color: #999;
+        }
 
-        /* 弹窗 (主弹窗) */
+        /* 主弹窗 */
         .popup-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -380,7 +367,7 @@
             color: #1e2a36;
         }
 
-        /* 二次确认弹窗白底 */
+        /* 二次确认弹窗 */
         .confirm-dialog {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -415,7 +402,7 @@
         .btn-yes { background: #a54242; color: white; }
         .btn-no { background: #3d6b8c; color: white; }
 
-        /* 模板命名弹窗白底 */
+        /* 模板命名弹窗 */
         .template-dialog {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -454,6 +441,7 @@
             font-weight: bold;
             cursor: pointer;
         }
+
         .hidden-upload {
             display: none;
         }
@@ -466,7 +454,7 @@
         <div class="grid" id="grid"></div>
     </div>
 
-    <!-- 顶部自定义编辑区 - 新布局两行 (无默认按钮) -->
+    <!-- 顶部自定义编辑区 - 无预览图 -->
     <div class="custom-edit-panel" id="editPanel">
         <!-- 第一行：编辑模式、数量设置、未点击图片 -->
         <div class="row-top">
@@ -479,61 +467,60 @@
                 <input type="number" id="itemCount" min="1" max="200" value="10" step="1">
                 <button id="applyCount">设置</button>
             </div>
-            <!-- 未点击图片 (无默认按钮) -->
+            <!-- 未点击图片 -->
             <div class="image-field">
-                <div class="image-preview" id="previewPre">🖼️</div>
                 <span>未点</span>
                 <div class="field-actions">
                     <button id="uploadPreBtn">📎上传</button>
-                    <!-- 默认按钮已移除 -->
                 </div>
             </div>
         </div>
 
         <!-- 第二行：弹窗图、已点图片、设置弹窗字按钮、选中提示 -->
         <div class="row-bottom">
-            <!-- 弹窗图片 (无默认按钮) -->
+            <!-- 弹窗图片 -->
             <div class="image-field">
-                <div class="image-preview" id="previewPopImg">🌄</div>
                 <span>弹窗图</span>
                 <div class="field-actions">
                     <button id="uploadPopImgBtn">📎上传</button>
-                    <!-- 默认按钮已移除 -->
                 </div>
             </div>
-            <!-- 点击后图片 - 文字改为"已点" (无默认按钮) -->
+            <!-- 点击后图片 - 已点 -->
             <div class="image-field">
-                <div class="image-preview" id="previewClicked">✨</div>
                 <span>已点</span>
                 <div class="field-actions">
                     <button id="uploadClickedBtn">📎上传</button>
-                    <!-- 默认按钮已移除 -->
                 </div>
             </div>
-            <!-- 设置弹窗字按钮 (取代输入框和应用按钮) -->
+            <!-- 设置弹窗字按钮 -->
             <button class="edit-text-btn" id="editTextBtn">✎设置弹窗字</button>
             <!-- 选中提示 -->
             <span id="selectedHint">未选中</span>
         </div>
     </div>
 
-    <!-- 底部功能栏 -->
+    <!-- 底部功能栏 (保存按钮文字改为"保存") -->
     <div class="bottom-actions">
-        <button id="saveTemplateBtn">💾保存模板</button>
+        <button id="saveTemplateBtn">💾保存</button>
         <select id="templateSelect">
             <option value="">加载模板...</option>
         </select>
+        <button class="delete-template-btn" id="deleteTemplateBtn" disabled>删</button>
+        <button id="exportBtn">出</button>
+        <button id="importBtn">入</button>
         <button id="randomBtn">🎲随机</button>
         <button id="resetPosBtn">↺初始化</button>
         <button id="resetAllBtn">⚠重置</button>
     </div>
 
-    <!-- 隐藏的文件输入框 -->
+    <!-- 隐藏的文件输入框 (图片上传) -->
     <input type="file" id="filePre" accept="image/*" class="hidden-upload">
     <input type="file" id="filePopImg" accept="image/*" class="hidden-upload">
     <input type="file" id="fileClicked" accept="image/*" class="hidden-upload">
+    <!-- 导入文件输入框 -->
+    <input type="file" id="importFile" accept="application/json" class="hidden-upload">
 
-    <!-- 主弹窗 (用于展示点击后效果) -->
+    <!-- 主弹窗 -->
     <div class="popup-modal" id="popupModal">
         <div class="popup-content">
             <div class="popup-left" id="popupLeft">🐱</div>
@@ -554,7 +541,7 @@
         </div>
     </div>
 
-    <!-- 随机二次确认弹窗 -->
+    <!-- 随机确认 -->
     <div class="confirm-dialog" id="randomConfirmDialog">
         <div class="confirm-box">
             <h3>🎲 随机打乱</h3>
@@ -564,7 +551,7 @@
         </div>
     </div>
 
-    <!-- 全部重置二次确认弹窗 -->
+    <!-- 全部重置确认 -->
     <div class="confirm-dialog" id="confirmResetDialog">
         <div class="confirm-box">
             <h3>⚠️ 全部重置</h3>
@@ -574,15 +561,35 @@
         </div>
     </div>
 
-    <!-- 模板命名弹窗 -->
+    <!-- 模板命名 -->
     <div class="template-dialog" id="templateNameDialog">
         <div class="template-box">
-            <h3 style="color:#1e3b5c;">保存模板</h3>
+            <h3>保存模板</h3>
             <input type="text" id="templateNameInput" placeholder="输入模板名称" autocomplete="off">
             <div class="template-actions">
                 <button id="saveTemplateConfirm" style="background:#4e8ab0; color:white;">保存</button>
                 <button id="saveTemplateCancel" style="background:#ccc; color:#1e2a36;">取消</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 覆盖确认 -->
+    <div class="confirm-dialog" id="overwriteConfirmDialog">
+        <div class="confirm-box">
+            <h3>⚠️ 模板已存在</h3>
+            <p>同名模板已存在，确定要覆盖吗？</p>
+            <button class="btn-yes" id="overwriteConfirmYes">确定覆盖</button>
+            <button class="btn-no" id="overwriteConfirmNo">取消</button>
+        </div>
+    </div>
+
+    <!-- 删除确认 -->
+    <div class="confirm-dialog" id="deleteConfirmDialog">
+        <div class="confirm-box">
+            <h3>❌ 删除模板</h3>
+            <p id="deleteConfirmMessage">确定要删除选中的模板吗？</p>
+            <button class="btn-yes" id="deleteConfirmYes">确定</button>
+            <button class="btn-no" id="deleteConfirmNo">取消</button>
         </div>
     </div>
 </div>
@@ -610,6 +617,7 @@
         const resetAllBtn = document.getElementById('resetAllBtn');
         const saveTemplateBtn = document.getElementById('saveTemplateBtn');
         const templateSelect = document.getElementById('templateSelect');
+        const deleteTemplateBtn = document.getElementById('deleteTemplateBtn');
         const selectedHint = document.getElementById('selectedHint');
         const popupModal = document.getElementById('popupModal');
         const popupLeft = document.getElementById('popupLeft');
@@ -625,20 +633,24 @@
         const templateNameInput = document.getElementById('templateNameInput');
         const saveTemplateConfirm = document.getElementById('saveTemplateConfirm');
         const saveTemplateCancel = document.getElementById('saveTemplateCancel');
+        const overwriteConfirmDialog = document.getElementById('overwriteConfirmDialog');
+        const overwriteConfirmYes = document.getElementById('overwriteConfirmYes');
+        const overwriteConfirmNo = document.getElementById('overwriteConfirmNo');
+        const deleteConfirmDialog = document.getElementById('deleteConfirmDialog');
+        const deleteConfirmYes = document.getElementById('deleteConfirmYes');
+        const deleteConfirmNo = document.getElementById('deleteConfirmNo');
+        const deleteConfirmMessage = document.getElementById('deleteConfirmMessage');
 
-        // 新增加的弹窗字编辑相关
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+        const importFile = document.getElementById('importFile');
+
         const editTextBtn = document.getElementById('editTextBtn');
         const textEditDialog = document.getElementById('textEditDialog');
         const textEditInput = document.getElementById('textEditInput');
         const textEditSave = document.getElementById('textEditSave');
         const textEditCancel = document.getElementById('textEditCancel');
 
-        // 预览元素
-        const previewPre = document.getElementById('previewPre');
-        const previewPopImg = document.getElementById('previewPopImg');
-        const previewClicked = document.getElementById('previewClicked');
-
-        // 文件上传
         const filePre = document.getElementById('filePre');
         const filePopImg = document.getElementById('filePopImg');
         const fileClicked = document.getElementById('fileClicked');
@@ -648,6 +660,8 @@
 
         let currentSelectedIndex = -1;
         let editMode = false;
+        let pendingTemplateName = '';
+        let currentLoadedTemplateName = '';
 
         // ---------- 辅助函数 ----------
         function createDefaultItem(index) {
@@ -705,33 +719,21 @@
             gridEl.innerHTML = html;
         }
 
-        function setPreview(previewEl, value) {
-            if (typeof value === 'string' && value.startsWith('data:image/')) {
-                previewEl.innerHTML = `<img src="${value}" alt="preview">`;
-            } else {
-                previewEl.innerHTML = `<span>${value}</span>`;
-            }
-        }
-
         function clearSelectedHint() {
             selectedHint.innerText = '未选中';
-            // 不重置预览，保持显示上次内容？但通常选中清除时预览可恢复默认？为了一致性，我们重置为默认。
-            previewPre.innerHTML = '🖼️';
-            previewPopImg.innerHTML = '🌄';
-            previewClicked.innerHTML = '✨';
         }
 
         function loadItemToEdit(index) {
             if (!editMode || index < 0 || index >= items.length) return;
-            const it = items[index];
-            setPreview(previewPre, it.pre);
-            setPreview(previewPopImg, it.popImg);
-            setPreview(previewClicked, it.clickedImg);
             selectedHint.innerText = `编辑 #${index+1}`;
         }
 
         function showPopup(popImg, popText) {
-            setPreview(popupLeft, popImg);
+            if (typeof popImg === 'string' && popImg.startsWith('data:image/')) {
+                popupLeft.innerHTML = `<img src="${popImg}" alt="popup">`;
+            } else {
+                popupLeft.innerHTML = `<span>${popImg}</span>`;
+            }
             popupRight.innerText = popText;
             popupModal.style.display = 'flex';
         }
@@ -755,14 +757,13 @@
             }
         });
 
-        // 数量设置
         applyCountBtn.addEventListener('click', () => {
             let newCount = parseInt(itemCountInput.value, 10) || 1;
             itemCountInput.value = newCount;
             rebuildItems(newCount, true);
+            currentLoadedTemplateName = '';
         });
 
-        // 编辑模式切换
         editModeCheck.addEventListener('change', (e) => {
             editMode = e.target.checked;
             if (!editMode) {
@@ -774,7 +775,6 @@
             }
         });
 
-        // 随机二次确认
         randomBtn.addEventListener('click', () => {
             randomConfirmDialog.style.display = 'flex';
         });
@@ -802,7 +802,6 @@
             randomConfirmDialog.style.display = 'none';
         });
 
-        // 位置初始化
         resetPosBtn.addEventListener('click', () => {
             for (let i = 0; i < items.length; i++) {
                 items[i].popImg = baseItems[i].popImg;
@@ -814,20 +813,19 @@
             if (editMode && currentSelectedIndex !== -1) loadItemToEdit(currentSelectedIndex);
         });
 
-        // 全部重置二次确认
         resetAllBtn.addEventListener('click', () => {
             confirmResetDialog.style.display = 'flex';
         });
         confirmResetYes.addEventListener('click', () => {
             itemCountInput.value = 10;
             rebuildItems(10, true);
+            currentLoadedTemplateName = '';
             confirmResetDialog.style.display = 'none';
         });
         confirmResetNo.addEventListener('click', () => {
             confirmResetDialog.style.display = 'none';
         });
 
-        // 弹窗字编辑按钮逻辑
         editTextBtn.addEventListener('click', () => {
             if (!editMode) {
                 alert('请先进入编辑模式');
@@ -837,7 +835,6 @@
                 alert('请先选中一个格子');
                 return;
             }
-            // 弹出编辑框，预填当前文字
             textEditInput.value = items[currentSelectedIndex].popText;
             textEditDialog.style.display = 'flex';
         });
@@ -849,10 +846,7 @@
             }
             const newText = textEditInput.value.trim() || DEFAULT_POPTEXT;
             items[currentSelectedIndex].popText = newText;
-            baseItems[currentSelectedIndex].popText = newText; // 同步到基础快照
-            // 更新预览？没有直接预览文字，但选中提示不变
-            // 重新渲染网格（因为文字不显示在格子上，但下次点击弹窗会显示新文字）
-            // 不需要重新渲染，因为文字不影响格子外观
+            baseItems[currentSelectedIndex].popText = newText;
             textEditDialog.style.display = 'none';
         });
 
@@ -860,8 +854,7 @@
             textEditDialog.style.display = 'none';
         });
 
-        // 图片上传逻辑 (无默认按钮)
-        function handleUpload(button, fileInput, fieldName, previewEl) {
+        function handleUpload(button, fileInput, fieldName) {
             button.addEventListener('click', () => {
                 if (currentSelectedIndex === -1 || !editMode) {
                     alert('请先在编辑模式下选中一个格子');
@@ -881,52 +874,175 @@
                     const idx = currentSelectedIndex;
                     items[idx][fieldName] = dataUrl;
                     baseItems[idx][fieldName] = dataUrl;
-                    setPreview(previewEl, dataUrl);
                     renderGrid();
                 };
                 reader.readAsDataURL(file);
                 fileInput.value = '';
             });
         }
-        handleUpload(uploadPreBtn, filePre, 'pre', previewPre);
-        handleUpload(uploadPopImgBtn, filePopImg, 'popImg', previewPopImg);
-        handleUpload(uploadClickedBtn, fileClicked, 'clickedImg', previewClicked);
+        handleUpload(uploadPreBtn, filePre, 'pre');
+        handleUpload(uploadPopImgBtn, filePopImg, 'popImg');
+        handleUpload(uploadClickedBtn, fileClicked, 'clickedImg');
 
-        // 模板保存
         saveTemplateBtn.addEventListener('click', () => {
+            templateNameInput.value = currentLoadedTemplateName || '';
             templateNameDialog.style.display = 'flex';
         });
+
         saveTemplateConfirm.addEventListener('click', () => {
             const name = templateNameInput.value.trim();
             if (!name) { alert('请输入模板名称'); return; }
-            const count = items.length;
-            const templateItems = baseItems.map(b => ({ ...b }));
-            templates.push({ name, count, items: templateItems });
-            localStorage.setItem('FANFANLE_TEMPLATES', JSON.stringify(templates));
-            updateTemplateSelect();
-            templateNameDialog.style.display = 'none';
-            templateNameInput.value = '';
+
+            const existingIndex = templates.findIndex(t => t.name === name);
+            if (existingIndex !== -1) {
+                pendingTemplateName = name;
+                templateNameDialog.style.display = 'none';
+                overwriteConfirmDialog.style.display = 'flex';
+            } else {
+                saveNewTemplate(name);
+                templateNameDialog.style.display = 'none';
+                templateNameInput.value = '';
+                currentLoadedTemplateName = name;
+            }
         });
+
         saveTemplateCancel.addEventListener('click', () => {
             templateNameDialog.style.display = 'none';
             templateNameInput.value = '';
         });
 
+        overwriteConfirmYes.addEventListener('click', () => {
+            overwriteConfirmDialog.style.display = 'none';
+            const existingIndex = templates.findIndex(t => t.name === pendingTemplateName);
+            if (existingIndex !== -1) {
+                templates.splice(existingIndex, 1);
+            }
+            saveNewTemplate(pendingTemplateName);
+            currentLoadedTemplateName = pendingTemplateName;
+            pendingTemplateName = '';
+            templateNameInput.value = '';
+        });
+
+        overwriteConfirmNo.addEventListener('click', () => {
+            overwriteConfirmDialog.style.display = 'none';
+            pendingTemplateName = '';
+        });
+
+        function saveNewTemplate(name) {
+            const count = items.length;
+            const templateItems = baseItems.map(b => ({ ...b }));
+            templates.push({ name, count, items: templateItems });
+            localStorage.setItem('FANFANLE_TEMPLATES', JSON.stringify(templates));
+            updateTemplateSelect();
+        }
+
         templateSelect.addEventListener('change', (e) => {
             const val = e.target.value;
-            if (!val) return;
+            if (!val) {
+                currentLoadedTemplateName = '';
+                deleteTemplateBtn.disabled = true;
+                return;
+            }
             const template = templates.find(t => t.name === val);
             if (template) {
                 itemCountInput.value = template.count;
                 rebuildItems(template.count, false, template.items);
+                currentLoadedTemplateName = val;
+                deleteTemplateBtn.disabled = false;
             }
+        });
+
+        deleteTemplateBtn.addEventListener('click', () => {
+            const selectedName = templateSelect.value;
+            if (!selectedName) return;
+            deleteConfirmMessage.innerText = `确定要删除模板“${selectedName}”吗？`;
+            deleteConfirmDialog.style.display = 'flex';
+        });
+
+        deleteConfirmYes.addEventListener('click', () => {
+            const selectedName = templateSelect.value;
+            if (!selectedName) {
+                deleteConfirmDialog.style.display = 'none';
+                return;
+            }
+            const index = templates.findIndex(t => t.name === selectedName);
+            if (index !== -1) {
+                templates.splice(index, 1);
+                localStorage.setItem('FANFANLE_TEMPLATES', JSON.stringify(templates));
+                updateTemplateSelect();
+                if (currentLoadedTemplateName === selectedName) {
+                    currentLoadedTemplateName = '';
+                }
+                templateSelect.value = '';
+                deleteTemplateBtn.disabled = true;
+            }
+            deleteConfirmDialog.style.display = 'none';
+        });
+
+        deleteConfirmNo.addEventListener('click', () => {
+            deleteConfirmDialog.style.display = 'none';
         });
 
         function updateTemplateSelect() {
             let options = '<option value="">加载模板...</option>';
             templates.forEach(t => options += `<option value="${t.name}">${t.name}</option>`);
             templateSelect.innerHTML = options;
+            if (currentLoadedTemplateName && !templates.some(t => t.name === currentLoadedTemplateName)) {
+                currentLoadedTemplateName = '';
+            }
+            deleteTemplateBtn.disabled = !templateSelect.value;
         }
+
+        // 导出
+        exportBtn.addEventListener('click', () => {
+            const exportData = {
+                count: items.length,
+                items: baseItems.map(item => ({ ...item }))
+            };
+            const jsonStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `翻翻乐模板_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // 导入
+        importBtn.addEventListener('click', () => {
+            importFile.click();
+        });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (typeof data.count !== 'number' || !Array.isArray(data.items) || data.items.length !== data.count) {
+                        throw new Error('无效的模板文件');
+                    }
+                    for (let item of data.items) {
+                        if (typeof item.pre !== 'string' || typeof item.popImg !== 'string' ||
+                            typeof item.popText !== 'string' || typeof item.clickedImg !== 'string') {
+                            throw new Error('模板数据格式错误');
+                        }
+                    }
+                    itemCountInput.value = data.count;
+                    rebuildItems(data.count, false, data.items);
+                    currentLoadedTemplateName = '';
+                    templateSelect.value = '';
+                    deleteTemplateBtn.disabled = true;
+                } catch (err) {
+                    alert('导入失败：' + err.message);
+                } finally {
+                    importFile.value = '';
+                }
+            };
+            reader.readAsText(file);
+        });
 
         window.addEventListener('click', (e) => {
             if (e.target === popupModal) popupModal.style.display = 'none';
@@ -934,6 +1050,8 @@
             if (e.target === randomConfirmDialog) randomConfirmDialog.style.display = 'none';
             if (e.target === templateNameDialog) templateNameDialog.style.display = 'none';
             if (e.target === textEditDialog) textEditDialog.style.display = 'none';
+            if (e.target === overwriteConfirmDialog) overwriteConfirmDialog.style.display = 'none';
+            if (e.target === deleteConfirmDialog) deleteConfirmDialog.style.display = 'none';
         });
 
         // 初始化
